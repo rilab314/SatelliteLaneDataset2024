@@ -82,6 +82,8 @@ for r_l_path in tqdm(road_links_paths, desc="Transforming Road Datas"):
     except Exception as e:
         print(e)
         error_files.append(r_l_path)
+    ##
+    break
 print(error_files)
 
 
@@ -94,7 +96,8 @@ ratio = 1
 image_num = 0
 
 
-image_list = glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/gookto_image/copy_00001_2/nobox/*.png")
+# image_list = glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/gookto_image/copy_00001_2/nobox/*.png")
+image_list = glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_사진중앙경도위도표시/nobox/*.png")
 image_list.sort()
 
 # 메인 루프
@@ -122,7 +125,7 @@ while True:
     else:
         save_root = image_path.replace('box', 'box_drew')
 
-    cv2.imwrite(save_root, image)
+    # cv2.imwrite(save_root, image)
     print(f"save {save_root}")
     image_num += 1
 
