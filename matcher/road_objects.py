@@ -4,6 +4,7 @@ import math
 import geopandas as gpd
 import pandas as pd
 import os
+import json
 from glob import glob
 from PIL import Image
 from pyproj import Transformer
@@ -29,15 +30,17 @@ class RoadObjectsProcessor:
         # ##
         # self.lane_process(lane_links)
 
-        lane_shp_files = self.find_files(config.root_folder, config.LaneShapeFile)
-        lane_links = self.shape_load_and_transform(lane_shp_files, self.UTM_to_web_transformer)
-        surface_shp_files = self.find_files(config.root_folder, config.SurfaceMarkShapeFile)
-        surface_links = self.shape_load_and_transform(surface_shp_files, self.UTM_to_web_transformer)
-        #
-        total_road_links = {"geometry": lane_links["geometry"]+surface_links["geometry"],
-                            "ID": lane_links["ID"] + surface_links["ID"],
-                            "kind": lane_links["kind"] + surface_links["kind"],
-                            "type": lane_links["type"] + surface_links["type"]}
+        # lane_shp_files = self.find_files(config.root_folder, config.LaneShapeFile)
+        # lane_links = self.shape_load_and_transform(lane_shp_files, self.UTM_to_web_transformer)
+        # surface_shp_files = self.find_files(config.root_folder, config.SurfaceMarkShapeFile)
+        # surface_links = self.shape_load_and_transform(surface_shp_files, self.UTM_to_web_transformer)
+        # #
+        # total_road_links = {"geometry": lane_links["geometry"]+surface_links["geometry"],
+        #                     "ID": lane_links["ID"] + surface_links["ID"],
+        #                     "kind": lane_links["kind"] + surface_links["kind"],
+        #                     "type": lane_links["type"] + surface_links["type"]}
+
+        total_road_links = self.load_from_json(config.TotalRoadLinksJsonFIle)
 
         self.process_road_objects_and_save_image(total_road_links)
 
@@ -96,11 +99,11 @@ class RoadObjectsProcessor:
             width, height = Image.open(image_path).size
 
             image = cv2.imread(image_path)
-            for geom_collection, IDs, kinds, types \
+            for geometries, IDs, kinds, types \
                     in tqdm(zip(total_road_links["geometry"], total_road_links["ID"], total_road_links["kind"], total_road_links["type"]), desc="Drawing Road Datas"):
-                for geometry, ID, kind, type in zip(geom_collection.geometry, IDs, kinds, types):
+                for geometry, ID, kind, type in zip(geometries, IDs, kinds, types):
                     try:
-                        pixel_coords = self.convert_geometry_to_pixels(geometry, x_min, y_min, x_max, y_max, width, height)
+                        pixel_coords = self.convert_geometry_to_pixels(geometry, type, x_min, y_min, x_max, y_max, width, height)
                         #
                         clipped_pixel_coords = self.clip_pixels(pixel_coords, width, height)
                         if len(clipped_pixel_coords) > 0:
@@ -121,13 +124,13 @@ class RoadObjectsProcessor:
         parts = image_name.split("_")[1].replace(".png", "").split(",")
         return list(map(float, parts))
 
-    def convert_geometry_to_pixels(self, geom, x_min, y_min, x_max, y_max, width, height):
-        if isinstance(geom, Polygon):
+    def convert_geometry_to_pixels(self, geom, type, x_min, y_min, x_max, y_max, width, height):
+        if type in ["1", "5"]:
             exterior_coords = [self.coords_to_pixels(x, y, x_min, y_max, x_max, y_min, width, height) for x, y in
-                               np.array(geom.exterior.coords)]
+                               np.array(geom)]
             return exterior_coords
-        elif isinstance(geom, LineString):
-            lane = [self.coords_to_pixels(x, y, x_min, y_max, x_max, y_min, width, height) for x, y in np.array(geom.coords)]
+        else:
+            lane = [self.coords_to_pixels(x, y, x_min, y_max, x_max, y_min, width, height) for x, y in np.array(geom)]
             return lane
         return []
 
@@ -176,6 +179,11 @@ class RoadObjectsProcessor:
                 if len(interior_coords) > 1:
                     cv2.polylines(img, [np.array(interior_coords, dtype=np.int32)], True, (255, 0, 255), 1)
         return img
+
+    def load_from_json(self, filename):
+        with open(filename, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        return data
 
     def lane_convert_geometry_to_pixels(self, geom, x_min, y_min, x_max, y_max, width, height):
         return [self.coords_to_pixels(x, y, x_min, y_max, x_max, y_min, width, height) for x, y, *_ in np.array(geom.coords)]

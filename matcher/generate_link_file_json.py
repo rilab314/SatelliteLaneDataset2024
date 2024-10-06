@@ -138,7 +138,7 @@ for r_l_path in tqdm(lane_links_paths, desc="Transforming Road Datas"):
             total_lane_links["type"].append(road_links['Type'])
     except Exception as e:
         print("Error: ",e)
-
+    #
     # if len(total_lane_links["geometry"]) == 4:
     #     break
 
@@ -154,6 +154,41 @@ total_road_links = {"geometry": total_lane_links["geometry"]+total_surface_links
                     "kind": total_lane_links["kind"] + total_surface_links["kind"],
                     "type": total_lane_links["type"] + total_surface_links["type"]}
 
+
+def save_to_json(data, filename):
+    with open(filename, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+def serialize_geometry(geometry):
+    """Geometry 객체를 JSON 직렬화 가능한 형태로 변환합니다."""
+    # Shapely 객체를 (x, y) 튜플 리스트로 변환
+    if isinstance(geometry, Polygon):
+        exterior = [(x, y) for x, y in geometry.exterior.coords]
+        return exterior
+    elif isinstance(geometry, LineString):
+        return [(x, y) for x, y in geometry.coords]
+    return None
+
+def prepare_data_for_json(total_road_links):
+    """도로 링크 데이터를 JSON 파일로 저장할 수 있는 형태로 준비합니다."""
+    output_data = {
+        'geometry': [],
+        'ID': [sublist.tolist() for sublist in total_road_links['ID']],
+        'kind': [sublist.tolist() for sublist in total_road_links['kind']],
+        'type': [sublist.tolist() for sublist in total_road_links['type']]
+    }
+    for geometries in total_road_links['geometry']:
+        serialized_geometries = []
+        for geom in geometries:
+            serialized_geom = serialize_geometry(geom)
+            serialized_geometries.append(serialized_geom)
+        output_data['geometry'].append(serialized_geometries)
+    return output_data
+
+prepared_data = prepare_data_for_json(total_road_links)
+
+# 파일로 저장
+save_to_json(prepared_data, config.SaveFolder + '/road_links.json')
 
 
 
