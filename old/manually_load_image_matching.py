@@ -12,6 +12,9 @@ from shapely.geometry import LineString
 from tqdm import tqdm
 
 
+from matcher.config import config
+
+
 # 파일 이름에서 WebMercator 좌표 추출
 def extract_coords(filename):
     parts = filename.split('_')[1].replace('.png', '').split(',')
@@ -63,7 +66,23 @@ def find_files(root_folder, file_name_to_find):
                 found_files.append(os.path.join(subdir, file))
     return found_files
 
+def crop_center_cv(img, crop_width, crop_height):
+    if img is None:
+        print("Image not found")
+        return
 
+    # 이미지의 크기 계산
+    height, width = img.shape[:2]
+    center_x, center_y = width // 2, height // 2
+    left = center_x - crop_width // 2
+    top = center_y - crop_height // 2
+    right = center_x + crop_width // 2
+    bottom = center_y + crop_height // 2
+
+    # 중앙을 기준으로 이미지 자르기
+    cropped_img = img[top:bottom, left:right]
+
+    return cropped_img
 
 root_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토지리/unzip'
 road_links_paths = find_files(root_folder, '/HDMap_UTM52N_타원체고/B2_SURFACELINEMARK.shp')
@@ -71,6 +90,9 @@ road_links_paths.sort()
 
 
 total_road_links = []
+total_ID = []
+total_kind = []
+total_type = []
 error_files = []
 transformer = Transformer.from_crs('EPSG:32652', 'EPSG:3857', always_xy=True)
 for r_l_path in tqdm(road_links_paths, desc="Transforming Road Datas"):
@@ -79,11 +101,19 @@ for r_l_path in tqdm(road_links_paths, desc="Transforming Road Datas"):
         road_links['transformed_geometry'] = road_links['geometry'].apply(transform_geometry)
         if len(road_links['transformed_geometry']) > 1:
             total_road_links.append(road_links['transformed_geometry'])
+
+            #
+            total_ID.append(road_links['ID'])
+            total_kind.append(road_links['Kind'])
+            total_type.append(road_links['Type'])
+            #
+
     except Exception as e:
         print(e)
         error_files.append(r_l_path)
-    ##
-    break
+    if len(total_road_links) == 10:
+        break
+
 print(error_files)
 
 
@@ -97,7 +127,8 @@ image_num = 0
 
 
 # image_list = glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/gookto_image/copy_00001_2/nobox/*.png")
-image_list = glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_사진중앙경도위도표시/nobox/*.png")
+image_list = glob(config.ImagesFolder + "/*.png")
+# image_list = glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/해상도테스트/origin_webmercator" + "/*.png")
 image_list.sort()
 
 # 메인 루프
@@ -119,35 +150,13 @@ while True:
             continue
     # cv2.imshow('Road Map', image)
     # cv2.imshow('original', cv2.imread(image_path))
-    if x_ad != 0 or y_ad != 0:
-        save_root = image_path.replace("box", f"box_drew/x{x_ad}y{y_ad}")
 
-    else:
-        save_root = image_path.replace('box', 'box_drew')
-
+    # save_root = os.path.join(config.SaveFolder, image_name)
+    save_root = image_path.replace("origin_webmercator", "drawn")
     # cv2.imwrite(save_root, image)
     print(f"save {save_root}")
     image_num += 1
 
-    # key = cv2.waitKey(0)
-    # if key == 27:
-    #     break
-    # elif key == ord('g'):
-    #     image_num += 1
-    # elif key == ord('f'):
-    #     image_num -= 1
-    # elif key == ord('d'):
-    #     x_ad += 1
-    # elif key == ord('a'):
-    #     x_ad -= 1
-    # elif key == ord('s'):
-    #     y_ad += 1
-    # elif key == ord('w'):
-    #     y_ad -= 1
-    # elif key == ord('q'):
-    #     ratio += 0.001
-    # elif key == ord('e'):
-    #     ratio -= 0.001
-    # print(f"x_ad: {x_ad}, y_ad: {y_ad}, ratio: {ratio}")
+
 
 
