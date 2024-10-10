@@ -12,7 +12,7 @@ from shapely.ops import transform
 from shapely.geometry import LineString, Polygon
 from tqdm import tqdm
 
-from matcher.config import config
+from matcher.config import config, ID_name_mapping
 from matcher.dataclasses_roadobject import RoadObject
 from matcher.file_io import serialize_dataclass, deserialize_dataclass, save_json_with_custom_indent
 
@@ -101,13 +101,15 @@ class RoadObjectsProcessor:
             image = cv2.imread(image_path)
             for geometries, IDs, kinds, types \
                     in tqdm(zip(total_road_links["geometry"], total_road_links["ID"], total_road_links["kind"], total_road_links["type"]), desc="Drawing Road Datas"):
-                for geometry, ID, kind, type in zip(geometries, IDs, kinds, types):
+                for geometry, ID, kind_id, type_id in zip(geometries, IDs, kinds, types):
                     try:
                         pixel_coords = self.convert_geometry_to_pixels(geometry, type, x_min, y_min, x_max, y_max, width, height)
                         #
                         clipped_pixel_coords = self.clip_pixels(pixel_coords, width, height)
+                        kind_name = ID_name_mapping.KindDict.get(kind_id, 'Unknown Category')
+                        type_name = ID_name_mapping.TypeDict.get(type_id, 'Unknown Type')
                         if len(clipped_pixel_coords) > 0:
-                            road_obj = RoadObject(id=ID, category=kind, type=type, points=clipped_pixel_coords)
+                            road_obj = RoadObject(id=ID, category_id=kind_id, type_id=type_id, category=kind_name, type=type_name, points=clipped_pixel_coords)
                             road_objects.append(road_obj)
 
                         image = self.draw_roads(image, clipped_pixel_coords, type)
@@ -132,7 +134,6 @@ class RoadObjectsProcessor:
         else:
             lane = [self.coords_to_pixels(x, y, x_min, y_max, x_max, y_min, width, height) for x, y in np.array(geom)]
             return lane
-        return []
 
     def clip_pixels(self, pixel_coords, width, height):
         np_pixel_coords = np.array(pixel_coords)

@@ -73,17 +73,17 @@ def save_json_with_custom_indent(data, filename, indent=4):
                 items.append(f'{" " * (level * indent)}"{key}": {_dump(value, level + 1)}')
             return "{\n" + ",\n".join(items) + f'\n{" " * ((level - 1) * indent)}}}'
         elif isinstance(data, list) and all(isinstance(i, (int, float, str)) for i in data):
-            return "[" + ", ".join(json.dumps(i) for i in data) + "]"
+            return "[" + ", ".join(json.dumps(i, ensure_ascii=False) for i in data) + "]"
         elif isinstance(data, list):
             items = []
             for value in data:
                 items.append(f'{" " * (level * indent)}{_dump(value, level + 1)}')
             return "[\n" + ",\n".join(items) + f'\n{" " * ((level - 1) * indent)}]'
         else:
-            return json.dumps(data)
+            return json.dumps(data, ensure_ascii=False)
 
     json_str = _dump(data)
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding='utf-8') as f:
         f.write(json_str)
 
 
