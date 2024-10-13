@@ -103,7 +103,7 @@ class RoadObjectsProcessor:
                     in tqdm(zip(total_road_links["geometry"], total_road_links["ID"], total_road_links["kind"], total_road_links["type"]), desc="Drawing Road Datas"):
                 for geometry, ID, kind_id, type_id in zip(geometries, IDs, kinds, types):
                     try:
-                        pixel_coords = self.convert_geometry_to_pixels(geometry, type, x_min, y_min, x_max, y_max, width, height)
+                        pixel_coords = self.convert_geometry_to_pixels(geometry, type_id, x_min, y_min, x_max, y_max, width, height)
                         #
                         clipped_pixel_coords = self.clip_pixels(pixel_coords, width, height)
                         kind_name = ID_name_mapping.KindDict.get(kind_id, 'Unknown Category')
@@ -112,7 +112,7 @@ class RoadObjectsProcessor:
                             road_obj = RoadObject(id=ID, category_id=kind_id, type_id=type_id, category=kind_name, type=type_name, points=clipped_pixel_coords)
                             road_objects.append(road_obj)
 
-                        image = self.draw_roads(image, clipped_pixel_coords, type)
+                        image = self.draw_roads(image, clipped_pixel_coords, type_id)
                     except Exception as e:
                         pass
             s_r = serialize_dataclass(road_objects)
@@ -155,8 +155,8 @@ class RoadObjectsProcessor:
         y_pixel = int(height * (y - y_max) / (y_min - y_max))
         return x_pixel, y_pixel
 
-    def draw_roads(self, img, geometries, type):
-        if type in ["1", "5"]:
+    def draw_roads(self, img, geometries, type_id):
+        if type_id in ["1", "5"]:
             if len(geometries) > 1:
                 cv2.polylines(img, [np.array(geometries, dtype=np.int32)], True, (255, 255, 0), 1)
         else:
@@ -168,17 +168,6 @@ class RoadObjectsProcessor:
                     cv2.line(img, prev_point, point, (0, 255, 255), 1)
                 prev_point = point
 
-        return img
-
-        if "exterior" in geometries:
-            exterior_coords = geometries["exterior"]
-            if len(exterior_coords) > 1:
-                cv2.polylines(img, [np.array(exterior_coords, dtype=np.int32)], True, (255, 255, 0), 1)
-
-        if "interiors" in geometries:
-            for interior_coords in geometries["interiors"]:
-                if len(interior_coords) > 1:
-                    cv2.polylines(img, [np.array(interior_coords, dtype=np.int32)], True, (255, 0, 255), 1)
         return img
 
     def load_from_json(self, filename):
