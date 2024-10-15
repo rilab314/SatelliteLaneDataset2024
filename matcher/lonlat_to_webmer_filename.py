@@ -33,13 +33,13 @@ def crop_center(image_path, output_size):
 lonlat_to_web = Transformer.from_crs("epsg:4326", "epsg:3857")
 web_to_lonlat = Transformer.from_crs("epsg:3857", "epsg:4326")
 
-root_folder = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_크롤러_240930/origin_lonlat"
+root_folder = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_크롤러_241015/origin_lonlat"
 
 image_list = glob(os.path.join(root_folder, "*.png"))
 image_list.sort()
 
 crop_size = [768, 768]
-crop_img_root = root_folder.replace("origin_lonlat", f"{crop_size[0]}x{crop_size[1]}")
+crop_img_root = root_folder.replace("origin_lonlat", f"{crop_size[0]}x{crop_size[1]}/origin_image")
 if not os.path.exists(crop_img_root):
     os.makedirs(crop_img_root)
 

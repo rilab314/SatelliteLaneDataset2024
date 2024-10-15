@@ -7,4 +7,4 @@ TotalRoadLinksJsonFIle = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/On
 
 ImagesFolder = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_크롤러_240930/768x768"
 
-SaveFolder = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_크롤러_240930"
+SaveFolder = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_크롤러_241015"

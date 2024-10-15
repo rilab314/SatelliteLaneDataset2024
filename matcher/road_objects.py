@@ -41,7 +41,7 @@ class RoadObjectsProcessor:
         #                     "type": lane_links["type"] + surface_links["type"]}
 
         total_road_links = self.load_from_json(config.TotalRoadLinksJsonFIle)
-
+        print("Load Completed Road Links")
         self.process_road_objects_and_save_image(total_road_links)
 
     def find_files(self, root_folder, file_pattern):
@@ -67,6 +67,7 @@ class RoadObjectsProcessor:
                     total_road_links["type"].append(road_links['Type'])
             except Exception as e:
                 print(e)
+
 
 
         return total_road_links
@@ -116,9 +117,9 @@ class RoadObjectsProcessor:
                     except Exception as e:
                         pass
             s_r = serialize_dataclass(road_objects)
-            label_path = os.path.join(config.SaveFolder, "label", image_name.replace(".png", ".json"))
+            label_path = os.path.join(config.ImagesFolder, "label", image_name.replace(".png", ".json"))
             save_json_with_custom_indent(s_r, label_path)
-            save_root = os.path.join(config.SaveFolder, "drawn", image_name)
+            save_root = os.path.join(config.ImagesFolder, "image", image_name)
             cv2.imwrite(save_root, image)
             print(f"save {save_root}")
 

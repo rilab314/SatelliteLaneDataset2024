@@ -11,8 +11,12 @@ from matcher.config.config import ImagesFolder
 from matcher.icp_algorithm import IcpApplier
 
 def imshow____(image, image_name="image", wait=0, run=1):
+    original_size = image.shape[:2]
+    scale = 1
+    new_size = int(original_size[1] * scale), int(original_size[0] * scale)
     if run:
-        cv2.imshow(image_name, image)
+        resize_image = cv2.resize(image, new_size)
+        cv2.imshow(image_name, resize_image)
         cv2.waitKey(wait)
         cv2.destroyAllWindows()
 
@@ -21,7 +25,7 @@ class DrawRoadObjects:
     def __init__(self, root_path):
         self.json_list = sorted(glob(os.path.join(root_path, "label", "*.json")))
         self.icp_vis = 0
-
+        self.image_waitKey = 1
 
     def process(self):
         for json_path in self.json_list:
@@ -29,30 +33,62 @@ class DrawRoadObjects:
             image = cv2.imread(image_path)
             obj_data = self.load_json(json_path)
             line_mask = self.create_line_mask(image, obj_data)
-            filtered_image = self.objects_image_filter(image, line_mask)
-            # # imshow____(line_mask)
-            # # imshow____(filtered_image, "filtered_image")
-
-            # align_matrix = self.align_masks(object_image, filtered_image)
+            filtered_image = self.filter_road_objects(image, line_mask)
+            # filtered_image = self.objects_image_filter(image, line_mask)
+            # continue
 
             # ICP
             transform = self.get_icp_transform(source_image=line_mask, target_image=filtered_image)
             transformed_data = self.transform_data(transform, obj_data)
             drawn_image = self.draw_objects(image, transformed_data)
             origin_drawn_image = self.draw_objects(image, obj_data)
+            stack_images = np.hstack((np.repeat(filtered_image[:, :, np.newaxis], 3, axis=-1), origin_drawn_image, drawn_image))
+            cv2.imshow("stack images", stack_images)
 
-            imshow____(np.hstack((origin_drawn_image, drawn_image)))
-            #
-            #
-            # over = self.calculate_overlap(filtered_image, obj_data)
-            # # optimal_data = self.matching_try(filtered_image, obj_data)
-            #
-            # # drawn_image = self.draw_objects(image, optimal_data)
-            # origin_drawn_image = self.draw_objects(image, obj_data)
-            # # imshow____(np.hstack((origin_drawn_image, drawn_image)))
-            #
-            # json_file_name = json_path.split("/")[-1]
+            # image save
+            image_name = image_path.split("/")[-1]
+            save_root = os.path.join(ImagesFolder, "road_matching", "241015_adap_icp")
+            if not os.path.exists(save_root):
+                os.makedirs(save_root)
+            save_path = os.path.join(save_root, image_name)
+            cv2.imwrite(save_path, stack_images)
 
+    def filter_road_objects(self, src_image, obj_mask):
+        output_mask = self.filter_by_color(src_image)
+        output_mask = self.filter_large_objects(output_mask)
+        masked_image = self.filter_by_mask(output_mask, obj_mask)
+        cv2.imshow('filter by mask', masked_image)
+        cv2.waitKey(self.image_waitKey)
+        return masked_image
+
+    def filter_by_mask(self, src_image, obj_mask):
+        image = src_image.copy()
+        dilated_mask = cv2.dilate(obj_mask, np.ones((3, 3), np.uint8), iterations=5)
+        image[dilated_mask == 0] = 0
+        return image
+
+    def filter_by_color(self, src_image):
+        hsv = cv2.cvtColor(src_image, cv2.COLOR_BGR2HSV)
+        value = hsv[:, :, 2]
+        # yellow_range = (45, 75)
+        # yellow_mask = hsv[:, :, 0]
+        # yellow_mask[np.logical_and(yellow_mask >= yellow_range[0], yellow_mask <= yellow_range[1])] = 255
+        # yellow_mask[np.logical_or(yellow_mask < yellow_range[0], yellow_mask > yellow_range[1])] = 0
+        # yellow_mask[value < 150] = 0
+        # cv2.imshow('yellow', yellow_mask)
+        cv2.imshow('value', value)
+        binary = cv2.adaptiveThreshold(value, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 19, -10)
+        cv2.imshow('binary', binary)
+        return binary
+
+    def filter_large_objects(self, object_mask):
+        print('object_mask', object_mask.shape)
+        eroded = cv2.erode(object_mask, np.ones((3, 3), np.uint8), iterations=1)
+        dilated = cv2.dilate(eroded, np.ones((3, 3), np.uint8), iterations=1)
+        cv2.imshow('eroded', dilated)
+        object_mask[dilated > 0] = 0
+        cv2.imshow('object_mask', object_mask)
+        return object_mask
 
     def align_masks(self, src_image, object_image):
         align_matrix = np.eye(2, 3)
@@ -67,9 +103,10 @@ class DrawRoadObjects:
                 result_img[np.logical_and(warped_image > 0, object_image == 0)] = (255,0,0)
                 # show lanes on rgb image
 
+
     def objects_image_filter(self, image, line_mask):
         output = self.filter_white_yellow(image)
-        output = self.filter_and_remove_large_areas(output, 50)
+        output = self.filter_and_remove_large_areas(output, 500)
         output = self.filter_mask_overlab(output, line_mask)
         return output
 

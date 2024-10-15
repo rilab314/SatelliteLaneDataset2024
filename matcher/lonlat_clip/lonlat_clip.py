@@ -1,16 +1,6 @@
 import numpy as np
-import cv2
-import math
-import geopandas as gpd
-import pandas as pd
-import os
-import numpy as np
 import json
-from glob import glob
-from PIL import Image
 from pyproj import Transformer
-from shapely.ops import transform
-from shapely.geometry import LineString, Polygon
 from tqdm import tqdm
 
 from matcher.road_objects import RoadObjectsProcessor
@@ -22,8 +12,10 @@ def lonlat_clip(lon_range, lat_range, steplon, steplat):
     lon_index_num = int(lon_range_diff//steplon)
     lat_index_num = int(lat_range_diff//steplat)
     range_grid = np.zeros((lon_index_num, lat_index_num), dtype=int)
+
     road_links = road_objects_processor_links()
-    for road_link in tqdm(road_links, desc="LonLatClip"):
+
+    for road_link in tqdm(road_links["geometry"], desc="LonLatClip"):
         for lane in road_link:
             try:
                 lane_np = np.array(lane.coords)
@@ -31,7 +23,12 @@ def lonlat_clip(lon_range, lat_range, steplon, steplat):
                     if lon_range[0] < dot[0] < lon_range[1] and lat_range[0] < dot[1] < lat_range[1]:
                         a = int((dot[0]-lon_range[0])//steplon)
                         b = int((dot[1]-lat_range[0])//steplat)
-                        range_grid[a, b] += 1
+                        a_1 = abs(a*steplon - dot[0]+lon_range[0])
+                        b_1 = abs(b*steplat - dot[1]+lat_range[0])
+                        print(f"a_1: {a_1}, b_1: {b_1}")
+                        if a_1 < 0.000575 and b_1 < 0.0004775:
+                            range_grid[a, b] += 1
+                            print(f"Add {a*steplon}, {b*steplat}")
             except Exception as e:
                 print(e)
 
@@ -45,6 +42,11 @@ def lonlat_clip(lon_range, lat_range, steplon, steplat):
               'array_data.json', 'w') as json_file:
         json.dump(positive_lonlat, json_file)
 
+
+def load_road_objects_processor_links():
+    road_objects_processor = RoadObjectsProcessor()
+    total_road_links = road_objects_processor.load_from_json(config.TotalRoadLinksJsonFIle)
+    return total_road_links
 
 
 
