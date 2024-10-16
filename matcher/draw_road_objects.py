@@ -42,8 +42,11 @@ class DrawRoadObjects:
             transformed_data = self.transform_data(transform, obj_data)
             drawn_image = self.draw_objects(image, transformed_data)
             origin_drawn_image = self.draw_objects(image, obj_data)
-            stack_images = np.hstack((np.repeat(filtered_image[:, :, np.newaxis], 3, axis=-1), origin_drawn_image, drawn_image))
-            cv2.imshow("stack images", stack_images)
+
+            hstack_filter = np.hstack((np.repeat(line_mask[:, :, np.newaxis], 3, axis=-1), np.repeat(filtered_image[:, :, np.newaxis], 3, axis=-1)))
+            hstack_images = np.hstack((origin_drawn_image, drawn_image))
+            vstack_all_images = np.vstack((hstack_images, hstack_filter))
+            cv2.imshow("stack images", vstack_all_images)
 
             # image save
             image_name = image_path.split("/")[-1]
@@ -51,7 +54,7 @@ class DrawRoadObjects:
             if not os.path.exists(save_root):
                 os.makedirs(save_root)
             save_path = os.path.join(save_root, image_name)
-            cv2.imwrite(save_path, stack_images)
+            cv2.imwrite(save_path, vstack_all_images)
 
     def filter_road_objects(self, src_image, obj_mask):
         output_mask = self.filter_by_color(src_image)
