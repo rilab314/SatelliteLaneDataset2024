@@ -29,6 +29,14 @@ class RoadObjectsProcessor:
         total_road_links = self.load_from_json(config.TotalRoadLinksJsonFIle)
         print("Load Completed Road Links")
         self.process_road_objects_and_save_image(total_road_links)
+        # with ProcessPoolExecutor() as executor:
+        #     BATCH_SIZE = 3
+        #
+        #     for i in range(0, len(self.image_paths), BATCH_SIZE):
+        #         batch = self.image_paths[i:i + BATCH_SIZE]
+        #         futures = [executor.submit(self.process_single_image, image_path, total_road_links) for image_path in batch]
+        #         for future in tqdm(as_completed(futures), total=len(futures), desc="Processing Images"):
+        #             future.result()
 
     def find_files(self, root_folder, file_pattern):
         found_files = []
