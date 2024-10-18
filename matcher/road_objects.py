@@ -21,7 +21,8 @@ from matcher.file_io import serialize_dataclass, deserialize_dataclass, save_jso
 class RoadObjectsProcessor:
     def __init__(self):
         self.image_paths = glob(config.ImagesFolder + "/origin_image/*.png")
-        self.image_paths.sort()
+        self.label_paths = glob(config.ImagesFolder + "/label/*.json")
+        self.unlabeled_image_list = self.get_unlabeled_image_list(self.image_paths, self.label_paths)
         self.UTM_to_web_transformer = Transformer.from_crs("EPSG:32652", "EPSG:3857", always_xy=True)
 
     def process(self):
@@ -29,6 +30,15 @@ class RoadObjectsProcessor:
         total_road_links = self.load_from_json(config.TotalRoadLinksJsonFIle)
         print("Load Completed Road Links")
         self.process_road_objects_and_save_image(total_road_links)
+
+    def get_unlabeled_image_list(self, image_paths, label_paths):
+        label_names = [os.path.basename(label).replace('.json', '') for label in label_paths]
+
+        unlabeled_image_list = [image for image in image_paths if
+                                os.path.basename(image).replace('.png', '') not in label_names]
+        unlabeled_image_list.sort()
+        return unlabeled_image_list
+
 
     def find_files(self, root_folder, file_pattern):
         found_files = []
@@ -89,7 +99,7 @@ class RoadObjectsProcessor:
 
     def process_road_objects_and_save_image(self, total_road_links):
 
-        for image_path in self.image_paths:
+        for image_path in self.unlabeled_image_list:
             road_objects = []
             image_name = image_path.split("/")[-1]
             x_min, y_min, x_max, y_max = self.extract_coords(image_name)
@@ -104,7 +114,7 @@ class RoadObjectsProcessor:
                     in tqdm(zip(total_road_links["geometry"], total_road_links["ID"], total_road_links["kind"], total_road_links["type"]), desc="Drawing Road Datas"):
                 for geometry, ID, kind_id, type_id in zip(geometries, IDs, kinds, types):
                     try:
-                        pixel_coords = self.convert_geometry_to_pixels(geometry, type_id, x_min, y_min, x_max, y_max, width, height)
+                        pixel_coords = self.convert_geometry_to_pixels(geometry, x_min, y_min, x_max, y_max, width, height)
                         #
                         clipped_pixel_coords = self.clip_pixels(pixel_coords, width, height)
                         ko_kind_name = ID_name_mapping.KindDict.get(kind_id, 'Unknown Category')
@@ -113,7 +123,8 @@ class RoadObjectsProcessor:
                         en_type_name = ID_name_mapping.TypeDict_English.get(ko_type_name, 'Unknown Type')
                         if len(clipped_pixel_coords) > 0:
                             road_obj = RoadObject(id=ID, category_id=kind_id, type_id=type_id, category=en_kind_name,
-                                                  type=en_type_name, pixel_points=clipped_pixel_coords, web_mercator_points=geometry)
+                                                  type=en_type_name, pixel_points=clipped_pixel_coords,
+                                                  web_mercator_points=geometry, image_id=int(image_name.split("_")[0]))
                             road_objects.append(road_obj)
 
                         # image = self.draw_roads(image, clipped_pixel_coords, type_id)
@@ -122,58 +133,21 @@ class RoadObjectsProcessor:
             s_r = serialize_dataclass(road_objects)
             label_path = os.path.join(config.ImagesFolder, "label", image_name.replace(".png", ".json"))
             save_json_with_custom_indent(s_r, label_path)
-            # save_root = os.path.join(config.ImagesFolder, "image", image_name)
-            # cv2.imwrite(save_root, image)
             print(f"save {label_path}")
 
-    def process_single_image(self, image_path, total_road_links):
-        road_objects = []
-        image_name = os.path.basename(image_path)
-        x_min, y_min, x_max, y_max = self.extract_coords(image_name)
-        width, height = Image.open(image_path).size
-        metadata = RoadMetaData(type="metadata", image_x1y1x2y2=[x_min, y_max, x_max, y_min],
-                                coordinate_format="web mercator", region="Seoul, Korea")
-        road_objects.append(metadata)
-
-        for geometries, IDs, kinds, types in zip(total_road_links["geometry"], total_road_links["ID"], total_road_links["kind"], total_road_links["type"]):
-            for geometry, ID, kind_id, type_id in zip(geometries, IDs, kinds, types):
-                try:
-                    pixel_coords = self.convert_geometry_to_pixels(geometry, type_id, x_min, y_min, x_max, y_max, width, height)
-                    clipped_pixel_coords = self.clip_pixels(pixel_coords, width, height)
-                    ko_kind_name = ID_name_mapping.KindDict.get(kind_id, 'Unknown Category')
-                    ko_type_name = ID_name_mapping.TypeDict.get(type_id, 'Unknown Type')
-                    en_kind_name = ID_name_mapping.KindDict_English.get(ko_kind_name, 'Unknown Category')
-                    en_type_name = ID_name_mapping.TypeDict_English.get(ko_type_name, 'Unknown Type')
-                    if len(clipped_pixel_coords) > 0:
-                        road_obj = RoadObject(
-                            id=ID, category_id=kind_id, type_id=type_id,
-                            category=en_kind_name,
-                            type=en_type_name,
-                            pixel_points=clipped_pixel_coords, web_mercator_points=geometry
-                        )
-                        road_objects.append(road_obj)
-                except Exception:
-                    pass
-        label_path = os.path.join(config.ImagesFolder, "label", image_name.replace(".png", ".json"))
-        s_r = serialize_dataclass(road_objects)
-        save_json_with_custom_indent(s_r, label_path)
-        print(f"save {label_path}")
 
     def extract_coords(self, image_name):
         parts = image_name.split("_")[1].replace(".png", "").split(",")
         return list(map(float, parts))
 
-    def convert_geometry_to_pixels(self, geom, type, x_min, y_min, x_max, y_max, width, height):
+    def convert_geometry_to_pixels(self, geom, x_min, y_min, x_max, y_max, width, height):
         coords = np.array(geom)
         x = coords[:, 0]
         y = coords[:, 1]
         x_pixels = ((width * (x - x_min) / (x_max - x_min)).astype(np.int32))
         y_pixels = ((height * (y_max - y) / (y_max - y_min)).astype(np.int32))
         pixel_coords = np.stack((x_pixels, y_pixels), axis=-1)
-        if type in ["1", "5"]:
-            return pixel_coords.tolist()
-        else:
-            return pixel_coords.tolist()
+        return pixel_coords.tolist()
 
     def clip_pixels(self, pixel_coords, width, height):
         np_pixel_coords = np.array(pixel_coords)

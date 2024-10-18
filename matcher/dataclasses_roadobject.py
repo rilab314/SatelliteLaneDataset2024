@@ -15,6 +15,7 @@ class RoadObject:
 	type: str
 	pixel_points: List
 	web_mercator_points: List
+	image_id: int
 
 @dc.dataclass(unsafe_hash=True)
 class RoadMetaData:
@@ -23,14 +24,5 @@ class RoadMetaData:
 	coordinate_format: str
 	region: str
 
-@dc.dataclass(unsafe_hash=True)
-class newRoadObject:
-	id: int
-	category_id: str
-	type_id: str
-	category: str
-	type: str
-	pixel_points: List
-	web_mercator_points: List
 
 

@@ -3,6 +3,7 @@ import json
 import cv2
 import numpy as np
 from glob import glob
+from tqdm import tqdm
 
 from matcher.config.config import TotalDataset
 from matcher.file_io import serialize_dataclass, deserialize_dataclass, save_json_with_custom_indent
@@ -21,16 +22,17 @@ class ConvertOriginToCOCO:
                        "annotations": [],
                        "categories": []}
 
-        for path in self.origin_label_list:
+        for path in tqdm(self.origin_label_list, desc="Label contents converting..."):
             origin_data = self.load_json_data(path)
             origin2coco_annotation = self.generate_annotation_coco_format(origin_data)
-            coco_format["annotations"] = origin2coco_annotation
+            coco_format["annotations"] += origin2coco_annotation
 
-        for image_path in self.origin_image_list:
+        for image_path in tqdm(self.origin_image_list, desc="Image contents converting..."):
             origin2coco_images = self.generate_images_coco_format(image_path)
             coco_format["images"].append(origin2coco_images)
 
-        save_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/dataset"
+
+        save_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/dataset/coco_format.json"
         save_json_with_custom_indent(coco_format, save_path)
 
     def generate_annotation_coco_format(self, origin_data):
@@ -56,32 +58,40 @@ class ConvertOriginToCOCO:
                            "id": str,
                            "type_id": int}
         area = self.get_area_of_polygon(data["pixel_points"])
-        bbox = self.get_bbox_of_polygon(data["pixel_points"])
+        bbox = self.get_bbox_of_polygon(data["pixel_points"], [768, 768, 3])
 
         annotation_dict["segmentation"] = data["pixel_points"]
         annotation_dict["area"] = area
         annotation_dict["iscrowd"] = 0
         annotation_dict["image_id"] = image_id
         annotation_dict["bbox"] = bbox
-        annotation_dict["category_id"] = int(data["catagory_id"])
+        annotation_dict["category_id"] = int(data["category_id"])
         annotation_dict["id"] = data["id"]
         annotation_dict["type_id"] = int(data["type_id"])
 
         return annotation_dict
 
-    def get_area_of_polygon(self, points):
+    def get_area_of_polygon(self, polygon):
+        points = np.array(polygon)
         x = points[:, 0]
         y = points[:, 1]
         area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
         return area
 
-    def get_bbox_of_polygon(self, points):
+    def get_bbox_of_polygon(self, points, image_shape):
         if not isinstance(points, np.ndarray):
             points = np.array(points)
         x_min = np.min(points[:, 0])
         y_min = np.min(points[:, 1])
         x_max = np.max(points[:, 0])
         y_max = np.max(points[:, 1])
+
+        img_height, img_width = image_shape[:2]
+
+        x_min = int(max(0, min(x_min, img_width - 1)))
+        y_min = int(max(0, min(y_min, img_height - 1)))
+        x_max = int(max(0, min(x_max, img_width - 1)))
+        y_max = int(max(0, min(y_max, img_height - 1)))
         return [x_min, y_min, x_max, y_max]
 
     def generate_images_coco_format(self, image_path):
@@ -108,3 +118,6 @@ class ConvertOriginToCOCO:
             data = json.load(f)
         return data
 
+if __name__ == '__main__':
+    converter = ConvertOriginToCOCO()
+    converter.convert_process()

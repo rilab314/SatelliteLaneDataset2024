@@ -35,7 +35,7 @@ def crop_center(image_path, output_size):
 if __name__ == '__main__':
 
     crop_size = [768, 768]
-    root_folder = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_크롤러_241016/origin_lonlat"
+    root_folder = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토위성이미지_크롤러/origin_lonlat"
 
     image_list = glob(os.path.join(root_folder, "*.png"))
     image_list.sort()
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     for img_path in image_list:
         file_name = img_path.split("/")[-1]
-        lon1, lat1 = float(file_name.split(",")[0][6:]), float(file_name.split(",")[1][:-4])
+        lon1, lat1 = float(file_name.split(",")[0][8:]), float(file_name.split(",")[1][:-4])
         x1, y2, x2, y1 = lonlat_to_webmercator_for_side(lon1, lat1, crop_size)
         cropped_image = crop_center(img_path, crop_size)
         re_named = img_path.replace("origin_lonlat", f"{crop_size[0]}x{crop_size[1]}").replace(file_name.split("_")[-1], f"{x1},{y2},{x2},{y1}.png")
