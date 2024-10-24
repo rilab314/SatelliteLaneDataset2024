@@ -63,6 +63,7 @@ KindDict = {
     '544': '오르막경사면',
 }
 
+#supercategory
 TypeDict_English = {
     '황색-단선-실선': 'yellow_single_solid',
     '황색-단선-점선': 'yellow_single_dashed',
@@ -93,6 +94,7 @@ TypeDict_English = {
     '횡단보도': 'crosswalk'
 }
 
+# category
 KindDict_English = {
     '중앙선': 'center_line',
     '가변차선': 'variable_lane',

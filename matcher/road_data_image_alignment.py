@@ -9,6 +9,7 @@ from glob import glob
 
 from matcher.config.config import ImagesFolder
 from matcher.icp_algorithm import IcpApplier
+from matcher.file_io import save_json_with_custom_indent
 
 def imshow____(image, image_name="image", wait=0, run=1):
     original_size = image.shape[:2]
@@ -23,15 +24,17 @@ def imshow____(image, image_name="image", wait=0, run=1):
 
 class DrawRoadObjects:
     def __init__(self, root_path):
-        self.json_list = sorted(glob(os.path.join(root_path, "label", "*.json")))
+        self.json_list = sorted(glob(os.path.join(root_path, "origin_label", "*.json")))
         self.icp_vis = 0
         self.image_waitKey = 1
 
     def process(self):
         for json_path in self.json_list:
-            image_path = json_path.replace("label", "origin_image").replace(".json", ".png")
+            image_path = json_path.replace("origin_label", "origin_image").replace(".json", ".png")
             image = cv2.imread(image_path)
-            obj_data = self.load_json(json_path)
+            origin_data = self.load_json(json_path)
+            metadata = [origin_data[0]]
+            obj_data = origin_data[1:]
             line_mask = self.create_line_mask(image, obj_data)
             filtered_image = self.filter_road_objects(image, line_mask)
             # filtered_image = self.objects_image_filter(image, line_mask)
@@ -43,18 +46,22 @@ class DrawRoadObjects:
             drawn_image = self.draw_objects(image, transformed_data)
             origin_drawn_image = self.draw_objects(image, obj_data)
 
-            hstack_filter = np.hstack((np.repeat(line_mask[:, :, np.newaxis], 3, axis=-1), np.repeat(filtered_image[:, :, np.newaxis], 3, axis=-1)))
-            hstack_images = np.hstack((origin_drawn_image, drawn_image))
-            vstack_all_images = np.vstack((hstack_images, hstack_filter))
-            cv2.imshow("stack images", vstack_all_images)
+            # hstack_filter = np.hstack((np.repeat(line_mask[:, :, np.newaxis], 3, axis=-1), np.repeat(filtered_image[:, :, np.newaxis], 3, axis=-1)))
+            # hstack_images = np.hstack((origin_drawn_image, drawn_image))
+            # vstack_all_images = np.vstack((hstack_images, hstack_filter))
+            # cv2.imshow("stack images", vstack_all_images)
+            #
+            # # image save
+            # image_name = image_path.split("/")[-1]
+            # save_root = os.path.join(ImagesFolder, "road_matching", "241015_adap_icp")
+            # if not os.path.exists(save_root):
+            #     os.makedirs(save_root)
+            # save_path = os.path.join(save_root, image_name)
+            # cv2.imwrite(save_path, vstack_all_images)
 
-            # image save
-            image_name = image_path.split("/")[-1]
-            save_root = os.path.join(ImagesFolder, "road_matching", "241015_adap_icp")
-            if not os.path.exists(save_root):
-                os.makedirs(save_root)
-            save_path = os.path.join(save_root, image_name)
-            cv2.imwrite(save_path, vstack_all_images)
+            # label data save
+            label_save_path = json_path.replace("origin_label", "label")
+            save_json_with_custom_indent(metadata+transformed_data, label_save_path)
 
     def filter_road_objects(self, src_image, obj_mask):
         output_mask = self.filter_by_color(src_image)
@@ -122,11 +129,11 @@ class DrawRoadObjects:
         data_cp = copy.deepcopy(data)
         for obj_dict in data_cp:
             modified_points = []
-            for point in obj_dict["points"]:
+            for point in obj_dict["pixel_points"]:
                 homogeneous_point = np.array([point[0], point[1], 1])
                 transformed_point = np.dot(transform, homogeneous_point)
                 modified_points.append([int(np.round(transformed_point[0])), int(np.round(transformed_point[1]))])
-            obj_dict["points"] = modified_points
+            obj_dict["pixel_points"] = modified_points
         return data_cp
 
 
@@ -144,11 +151,11 @@ class DrawRoadObjects:
 
                         for obj_dict in data_cp:
                             modified_points = []
-                            for point in obj_dict["points"]:
+                            for point in obj_dict["pixel_points"]:
                                 new_x = int((point[0] + x_shift) * x_ratio)
                                 new_y = int((point[1] + y_shift) * y_ratio)
                                 modified_points.append([new_x, new_y])
-                            obj_dict["points"] = modified_points
+                            obj_dict["pixel_points"] = modified_points
 
                         overlap_area = self.calculate_overlap(filtered_image, data_cp)
                         if max_overlap_area is None:
@@ -207,8 +214,8 @@ class DrawRoadObjects:
     def create_line_mask(self, image, data):
         line_mask = np.zeros_like(image[:, :, 0])
         for obj in data:
-            points = np.array(obj['points'], dtype=np.int32)
-            if obj['type_id'] in ['1', '5']:
+            points = np.array(obj["pixel_points"], dtype=np.int32)
+            if obj["type_id"] in ["1", "5"]:
                cv2.fillPoly(line_mask, [points], 255)
             else:
                 cv2.polylines(line_mask, [points], False, 255, 1)
@@ -218,13 +225,13 @@ class DrawRoadObjects:
         image = image.copy()
         for obj in data:
             if obj["type_id"] in ["1", "5"]:
-                if len(obj["points"]) > 1:
-                    cv2.polylines(image, [np.array(obj["points"], dtype=np.int32)], True, (255, 255, 0), 1)
+                if len(obj["pixel_points"]) > 1:
+                    cv2.polylines(image, [np.array(obj["pixel_points"], dtype=np.int32)], True, (255, 255, 0), 1)
             else:
                 prev_point = None
-                if np.all(np.isnan(obj["points"])) or np.all(np.isnan(obj["points"])):
+                if np.all(np.isnan(obj["pixel_points"])) or np.all(np.isnan(obj["pixel_points"])):
                     return image
-                for point in obj["points"]:
+                for point in obj["pixel_points"]:
                     if prev_point is not None:
                         cv2.line(image, prev_point, tuple(point), (0, 255, 255), 1)
                     prev_point = tuple(point)
