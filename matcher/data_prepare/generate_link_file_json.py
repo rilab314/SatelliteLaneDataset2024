@@ -139,7 +139,7 @@ def prepare_data_for_json(total_road_links):
 
 
 if __name__ == '__main__':
-    root_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/국토지리/unzip'
+    root_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도/unzip'
     path_list = glob(os.path.join(root_folder, "*"))
     for path in path_list:
         path_name = os.path.basename(path)
