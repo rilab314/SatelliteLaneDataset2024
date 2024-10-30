@@ -2,11 +2,11 @@ import os
 import json
 
 if __name__ == '__main__':
-    coco_data = "/media/falcon/IanBook8T1/ArchiveDrive/PublicDataset/unzips/coco/annotations/instances_train2017.json"
-    with open(coco_data, 'r', encoding='utf-8') as file:
-        data = json.load(file)
+    # coco_data = "/media/falcon/IanBook8T1/ArchiveDrive/PublicDataset/unzips/coco/annotations/instances_train2017.json"
+    # with open(coco_data, 'r', encoding='utf-8') as file:
+    #     data = json.load(file)
 
-    satellite_data_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/dataset/768x768/coco/annotations/instances_val2017.json"
+    satellite_data_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/archive/국토정보플랫폼/total_road_links.json"
     with open(satellite_data_path, 'r', encoding='utf-8') as file:
         satellite_data = json.load(file)
 
