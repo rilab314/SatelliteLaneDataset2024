@@ -6,10 +6,10 @@ import dataclasses as dc
 
 from glob import glob
 from typing import List
+from enum import Enum
 
-from sympy.parsing.fortran.fortran_parser import src_to_ast
 
-from src.dto import GeometryObject, RoadObject, CLASS_MAPPING
+from src.dto import CLASS_MAPPING
 
 
 def write_to_json(save_path: str, geometries: List):
@@ -38,6 +38,8 @@ def serialize_dataclass(obj):
             value = getattr(obj, field.name)
             if isinstance(value, cv2.KeyPoint):
                 result[field.name] = serialize_dataclass(value)
+            elif isinstance(value, Enum):  # Enum 타입을 문자열로 변환
+                result[field.name] = value.name
             else:
                 result[field.name] = serialize_dataclass(value)
         return result
@@ -70,6 +72,7 @@ def save_json_with_custom_indent(data, filename, indent=4):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(json_str)
 
+
 class JsonFileReader:
     def __init__(self, root_path=None):
         self.root_path = root_path
@@ -94,7 +97,3 @@ class JsonFileReader:
             class_name = road_obj.pop('class', None)
             data.append(CLASS_MAPPING[class_name](**road_obj))
         return data
-
-
-
-

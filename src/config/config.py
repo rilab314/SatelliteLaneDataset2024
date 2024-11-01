@@ -1,8 +1,9 @@
 ORIGINAL_IMAGE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/origin_lonlat'
-DATASET_PATH = ''
+DATASET_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_dataset_241031'
 SHAPE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도'
-JSON_PATH = ''
-LABEL_PATH = ''
+COORD_LIST_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_dataset_241031/coord_list.json'
+JSON_PATH = DATASET_PATH+'/json'
+LABEL_PATH = DATASET_PATH+'/base_label'
 SURFACE_SHAPE_endswith_NAME = '/HDMap_UTM52N_타원체고/B3_SURFACEMARK.shp'
 LANE_SHAPE_endswith_NAME = '/HDMap_UTM52N_타원체고/B2_SURFACELINEMARK.shp'
 

@@ -12,7 +12,6 @@ class IcpApplier:
         transform = self.icp(source_pcd, target_pcd, vis=vis)
         return transform
 
-
     def convert_pcd(self, mask):
         points = np.where(mask)
         point_zero = np.zeros_like(points[0])
@@ -22,7 +21,6 @@ class IcpApplier:
         pcd.points = o3d.utility.Vector3dVector(points)
         # o3d.visualization.draw_geometries([pcd])
         return pcd
-
 
     def icp(self, source, target, vis=0):
         # source.points [N, 3]
@@ -56,7 +54,6 @@ class IcpApplier:
         transform2d[:2, 2] = transform3d[:2, 3]
         print('transform2d\n', transform2d)
         return transform2d
-
 
     def transform_image(self, image, transform):
         aligned_sema_map = cv2.warpAffine(image, transform, (image.shape[1], image.shape[0]))

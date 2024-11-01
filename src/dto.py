@@ -10,6 +10,8 @@ from sympy.polys.polyoptions import Polys
 class GeometryType(Enum):
     POLYGON = 'POLYGON',
     LINE_STRING = 'LINE_STRING',
+    MULTIPOLYGON = 'MULTIPOLYGON',
+    MULTILINE_STRING = 'MULTILINE_STRING',
 
 
 # TODO 필드마다 설명 입력

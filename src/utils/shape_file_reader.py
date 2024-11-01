@@ -4,7 +4,7 @@ import geopandas as gpd
 from typing import List
 from pyproj import Transformer
 from shapely.ops import transform
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, Polygon, MultiPolygon, MultiLineString
 
 import src.config.config as cfg
 from src.dto import GeometryObject, GeometryType
@@ -34,18 +34,34 @@ class ShapeFileReader:
 
     def read(self, shape_path: str) -> List[GeometryObject]:
         geo_df = gpd.read_file(shape_path)
-        coordinates = self.transform_geometry(geo_df['geometry'], self.UTM_to_webmercator_transformer)
+        coordinates = geo_df['geometry'].apply(self.transform_geometry, transformer=self.UTM_to_webmercator_transformer)
         geometries = []
-        for coord, geo_id, geo_kind, geo_type in zip(coordinates, geo_df['ID'], geo_df['kind'], geo_df['type']):
+        for coord, geo_id, geo_kind, geo_type in zip(coordinates, geo_df['ID'], geo_df['Kind'], geo_df['Type']):
             geom = self.convert_to_geometry_object(coord, geo_id, geo_kind, geo_type, shape_path)
-            geometries.append(geom)
+            if geom is not None:
+                geometries.append(geom)
         return geometries
+
+
+    def transform_geometry(self, geometry, transformer):
+        if geometry is None:
+            return None
+        else:
+            return transform(lambda x, y, z=0: transformer.transform(x, y), geometry)
+
 
     def convert_to_geometry_object(self, coord, geo_id, geo_kind, geo_type, shape_path) -> GeometryObject:
         if coord.__class__.__name__ == 'LineString':
             geometry_type = GeometryType.LINE_STRING
         elif coord.__class__.__name__ == 'Polygon':
             geometry_type = GeometryType.POLYGON
+        elif coord.__class__.__name__ == 'MultiLineString':
+            geometry_type = GeometryType.MULTILINE_STRING
+        elif coord.__class__.__name__ == 'MultiPolygon':
+            geometry_type = GeometryType.MULTIPOLYGON
+        else:
+            print(coord.__class__.__name__)
+            return None
         return GeometryObject(id=geo_id,
                               kind=geo_kind,
                               type=geo_type,
@@ -53,23 +69,6 @@ class ShapeFileReader:
                               coordinates=self.serialize_geometry(coord),
                               geometry_type=geometry_type)
 
-    def transform_geometry(self, geometry, transformer):
-        if geometry is None:
-            return None
-        def transform_coords(coords):
-            coords_np = np.array(coords)
-            transformed = transformer.transform(coords_np[:, 0], coords_np[:, 1])
-            return np.column_stack(transformed)
-
-        if geometry.geom_type == "LineString":
-            return LineString(transform_coords(geometry.coords))
-
-        elif geometry.geom_type == "Polygon":
-            transformed_exterior = LineString(transform_coords(geometry.exterior.coords))
-            return Polygon(transformed_exterior)
-
-        else:
-            return transform(lambda x, y, z=0: transformer.transform(x, y), geometry)
 
     def serialize_geometry(self, coord):
         if isinstance(coord, Polygon):
@@ -77,4 +76,9 @@ class ShapeFileReader:
             return exterior
         elif isinstance(coord, LineString):
             return [(x, y) for x, y in coord.coords]
-        return None
+        elif isinstance(coord, MultiPolygon):
+            return [[(x, y) for x, y in poly.exterior.coords] for poly in coord.geoms]
+        elif isinstance(coord, MultiLineString):
+            return [[(x, y) for x, y in line.coords] for line in coord.geoms]
+        else:
+            return None
