@@ -24,13 +24,13 @@ def imshow____(image, image_name="image", wait=0, run=1):
 
 class DrawRoadObjects:
     def __init__(self, root_path):
-        self.json_list = sorted(glob(os.path.join(root_path, "origin_label", "*.json")))
-        self.icp_vis = 0
+        self.json_list = sorted(glob(os.path.join(root_path, "label", "*.json")))
+        self.icp_vis = 1
         self.image_waitKey = 1
 
     def process(self):
         for json_path in self.json_list:
-            image_path = json_path.replace("origin_label", "origin_image").replace(".json", ".png")
+            image_path = json_path.replace("label", "image").replace(".json", ".png")
             image = cv2.imread(image_path)
             origin_data = self.load_json(json_path)
             metadata = [origin_data[0]]
@@ -43,24 +43,22 @@ class DrawRoadObjects:
             # ICP
             transform = self.get_icp_transform(source_image=line_mask, target_image=filtered_image)
             transformed_data = self.transform_data(transform, obj_data)
-            drawn_image = self.draw_objects(image, transformed_data)
+            print(f"image: {os.path.basename(image_path)}\ntf:\n{transform}")
             origin_drawn_image = self.draw_objects(image, obj_data)
+            drawn_image = self.draw_objects(image, transformed_data)
 
-            # hstack_filter = np.hstack((np.repeat(line_mask[:, :, np.newaxis], 3, axis=-1), np.repeat(filtered_image[:, :, np.newaxis], 3, axis=-1)))
-            # hstack_images = np.hstack((origin_drawn_image, drawn_image))
-            # vstack_all_images = np.vstack((hstack_images, hstack_filter))
-            # cv2.imshow("stack images", vstack_all_images)
+            hstack_filter = np.hstack((np.repeat(line_mask[:, :, np.newaxis], 3, axis=-1), np.repeat(filtered_image[:, :, np.newaxis], 3, axis=-1)))
+            hstack_images = np.hstack((origin_drawn_image, drawn_image))
+            vstack_all_images = np.vstack((hstack_images, hstack_filter))
+            cv2.imshow("stack images", vstack_all_images)
+            # cv2.waitKey(0)
             #
-            # # image save
-            # image_name = image_path.split("/")[-1]
-            # save_root = os.path.join(ImagesFolder, "road_matching", "241015_adap_icp")
-            # if not os.path.exists(save_root):
-            #     os.makedirs(save_root)
-            # save_path = os.path.join(save_root, image_name)
-            # cv2.imwrite(save_path, vstack_all_images)
+            # image save
+            save_path = json_path.replace("label", "image_drawn").replace(".json", ".png")
+            cv2.imwrite(save_path, drawn_image)
 
             # label data save
-            label_save_path = json_path.replace("origin_label", "label")
+            label_save_path = json_path.replace("label", "label_transformed")
             save_json_with_custom_indent(metadata+transformed_data, label_save_path)
 
     def filter_road_objects(self, src_image, obj_mask):
@@ -129,11 +127,22 @@ class DrawRoadObjects:
         data_cp = copy.deepcopy(data)
         for obj_dict in data_cp:
             modified_points = []
-            for point in obj_dict["pixel_points"]:
-                homogeneous_point = np.array([point[0], point[1], 1])
-                transformed_point = np.dot(transform, homogeneous_point)
-                modified_points.append([int(np.round(transformed_point[0])), int(np.round(transformed_point[1]))])
-            obj_dict["pixel_points"] = modified_points
+            if self.list_depth(obj_dict["pixel_points"]) == 3:
+                one_lane = []
+                for lane_points in obj_dict["pixel_points"]:
+                    for point in lane_points:
+                        homogeneous_point = np.array([point[0], point[1], 1])
+                        transformed_point = np.dot(transform, homogeneous_point)
+                        one_lane.append(
+                            [int(np.round(transformed_point[0])), int(np.round(transformed_point[1]))])
+                    modified_points.append(one_lane)
+                obj_dict["pixel_points"] = modified_points
+            else:
+                for point in obj_dict["pixel_points"]:
+                    homogeneous_point = np.array([point[0], point[1], 1])
+                    transformed_point = np.dot(transform, homogeneous_point)
+                    modified_points.append([int(np.round(transformed_point[0])), int(np.round(transformed_point[1]))])
+                obj_dict["pixel_points"] = modified_points
         return data_cp
 
 
@@ -214,12 +223,27 @@ class DrawRoadObjects:
     def create_line_mask(self, image, data):
         line_mask = np.zeros_like(image[:, :, 0])
         for obj in data:
-            points = np.array(obj["pixel_points"], dtype=np.int32)
-            if obj["type_id"] in ["1", "5"]:
-               cv2.fillPoly(line_mask, [points], 255)
+            if self.list_depth(obj["pixel_points"]) == 3:
+                for obj_points in obj["pixel_points"]:
+                    points = np.array(obj_points, dtype=np.int32)
+                    if obj["type_id"] in ["1", "5"]:
+                        cv2.fillPoly(line_mask, [points], 255)
+                    else:
+                        cv2.polylines(line_mask, [points], False, 255, 1)
             else:
-                cv2.polylines(line_mask, [points], False, 255, 1)
+                points = np.array(obj["pixel_points"], dtype=np.int32)
+                if obj["type_id"] in ["1", "5"]:
+                   cv2.fillPoly(line_mask, [points], 255)
+                else:
+                    cv2.polylines(line_mask, [points], False, 255, 1)
         return line_mask
+
+    def list_depth(self, lst):
+        if isinstance(lst, list):
+            if not lst:  # 빈 리스트인 경우, 깊이 1로 간주
+                return 1
+            return 1 + max(self.list_depth(item) for item in lst)
+        return 0
 
     def draw_objects(self, image, data):
         image = image.copy()
@@ -245,6 +269,6 @@ class DrawRoadObjects:
 
 
 if __name__ == '__main__':
-    root_path = ImagesFolder
+    root_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/archive/국토정보플랫폼/unused_data/convert_for_train/인천_위성이미지"
     draw_road_obj = DrawRoadObjects(root_path)
     draw_road_obj.process()

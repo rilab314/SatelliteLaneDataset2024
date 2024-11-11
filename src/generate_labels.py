@@ -13,6 +13,8 @@ from src.dto import GeometryObject, RoadObject, MetaData
 
 
 def generate_labels():
+    os.makedirs(cfg.LABEL_PATH, exist_ok=True)
+
     img_center_coords = read_coordinates(filename=cfg.COORD_LIST_PATH)
     img_tlbr_coords = convert_to_tlbr(img_center_coords)
     reader = JsonFileReader(cfg.JSON_PATH)
@@ -20,9 +22,11 @@ def generate_labels():
     json_list = reader.list_files()
     for file_path in tqdm(json_list, desc='Generating Labels'):
         geometries = reader.read(file_path)
-        for geometry in geometries:
-            update_labels(geometry, img_tlbr_coords, img_center_coords)
-
+        global_touch_map = np.zeros((len(img_center_coords), len(geometries)), dtype=np.int32)
+        for geometry_num, geometry in enumerate(geometries):
+            image_mask = update_labels(geometry, img_tlbr_coords, img_center_coords)
+            update_global_touch_map(global_touch_map, image_mask, geometry_num)
+        write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords)
 
 def read_coordinates(filename: str) -> List[Tuple[str, str]]:
     '''
@@ -48,7 +52,7 @@ def convert_to_tlbr(center_coords: List[Tuple[str, str]]) -> np.ndarray:
 
 def update_labels(geometry: GeometryObject, tlbr_coords: np.ndarray, center_coords: List[Tuple[str, str]]):
     """
-    :param geometry: 
+    :param geometry:
     :param tlbr_coords: (N, 4) [(x1,y1,x2,y2), ...] 
     :param center_coords: (N, 2) [(x1, y1), (x2, y2), (x3, y3), ...]
     :return: 
@@ -61,32 +65,8 @@ def update_labels(geometry: GeometryObject, tlbr_coords: np.ndarray, center_coor
     mask &= (tlbr_coords[..., 2] > coordinates[..., 0]) & (tlbr_coords[..., 3] < coordinates[..., 1])
     # mask: (N,)
     image_mask = np.sum(mask, axis=1) > 0
-    tlbr_coords_new = np.squeeze(tlbr_coords[image_mask])
-    center_coords_new = np.array(center_coords)[image_mask]
-    
-    for tlbr, center in zip(tlbr_coords_new, center_coords_new):
-        filepath = to_label_filepath(center)
-        update_file(filepath, geometry, tlbr)
-        
+    return image_mask
 
-def to_label_filepath(center_coord: Tuple[str, str]) -> str:
-    file_coord = center_coord[0]+","+center_coord[1]
-    file_path = os.path.join(cfg.LABEL_PATH, f"{file_coord}.json")
-    return file_path
-
-
-def update_file(filename: str, geometry: GeometryObject, tlbr: np.ndarray):
-    reader = JsonFileReader()
-    old_road_objects = reader.read(filename)
-    if not old_road_objects:
-        old_road_objects = [MetaData(type='matadata',
-                                     image_x1y1x2y2=tlbr.tolist(),
-                                     coordinate_format='webmercator',
-                                     format_code='EPSG:3857',
-                                     region='Seoul, Korea')]
-    new_road_objects = convert_to_road_object(geometry, tlbr, filename)
-    road_objects = old_road_objects + [new_road_objects]
-    write_to_json(filename, road_objects)
 
 
 def convert_to_road_object(geometry, tlbr, filename):
@@ -114,6 +94,50 @@ def convert_geometry_to_image_points(geom, tlbr):
     y_pixels = ((cfg.IMAGE_SIZE_h * (tlbr[3] - y) / (tlbr[3] - tlbr[1])).astype(np.int32))
     image_points = np.stack((x_pixels, y_pixels), axis=-1)
     return image_points.tolist()
+
+
+def update_global_touch_map(global_touch_map, image_mask, geometry_num):
+    global_touch_map[image_mask, geometry_num] += 1
+
+
+def write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords):
+    for geo_touch_map, tlbr, center in zip(global_touch_map, img_tlbr_coords, img_center_coords):
+        if not np.all(geo_touch_map == 0):
+            valid_geometries = np.array(geometries)[geo_touch_map==True]
+            filepath = to_label_filepath(center)
+            update_file(filepath, valid_geometries.tolist(), tlbr)
+
+
+def to_label_filepath(center_coord: Tuple[str, str]) -> str:
+    file_coord = center_coord[0]+","+center_coord[1]
+    file_path = os.path.join(cfg.LABEL_PATH, f"{file_coord}.json")
+    return file_path
+
+
+def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarray):
+    reader = JsonFileReader()
+    road_objects = reader.read(filename)
+    if not road_objects:
+        road_objects = [MetaData(type='matadata',
+                                     image_x1y1x2y2=tlbr.tolist(),
+                                     coordinate_format='webmercator',
+                                     format_code='EPSG:3857',
+                                     region='Seoul, Korea')]
+
+    id_list = search_objects_ids(road_objects)
+
+    for geometry in geometries:
+        if geometry.id not in id_list:
+            new_road_objects = convert_to_road_object(geometry, tlbr, filename)
+            road_objects += [new_road_objects]
+    write_to_json(filename, road_objects)
+
+def search_objects_ids(road_objects: List):
+    id_list = []
+    for road_object in road_objects:
+        if road_object.__class__.__name__ == 'RoadObject':
+            id_list.append(road_object.id)
+    return id_list
 
 if __name__ == '__main__':
     generate_labels()

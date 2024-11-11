@@ -3,14 +3,17 @@ import json
 import geopandas as gpd
 
 if __name__ == '__main__':
-    # coco_data = "/media/falcon/IanBook8T1/ArchiveDrive/PublicDataset/unzips/coco/annotations/instances_train2017.json"
-    # with open(coco_data, 'r', encoding='utf-8') as file:
-    #     data = json.load(file)
+    coco_data = "/media/falcon/IanBook8T1/ArchiveDrive/PublicDataset/unzips/coco/annotations/instances_train2017.json"
+    with open(coco_data, 'r', encoding='utf-8') as file:
+        data = json.load(file)
 
     # satellite_data_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/archive/국토정보플랫폼/total_road_links.json"
     # with open(satellite_data_path, 'r', encoding='utf-8') as file:
     #     satellite_data = json.load(file)
-
+    asd = []
+    for ann in data['annotations']:
+        if len(ann['bbox']) == 2:
+            asd.append(ann['bbox'])
 
     road_data_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도/unzip/(B110)정밀도로지도_자율차시험운행_국도1구간/SEC01_서수원IC_오성IC/HDMap_UTM52N_타원체고/B2_SURFACELINEMARK.shp"
     road_data = gpd.read_file(road_data_path)

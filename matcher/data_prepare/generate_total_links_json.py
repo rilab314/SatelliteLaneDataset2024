@@ -1,21 +1,15 @@
 import numpy as np
 import cv2
-import math
 import geopandas as gpd
-import pandas as pd
 import os
 import json
-from glob import glob
-from PIL import Image
 from pyproj import Transformer
 from shapely.ops import transform
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, Polygon, MultiPolygon, MultiLineString
 from tqdm import tqdm
 
 
 from matcher.config import config
-from matcher.dataclasses_roadobject import RoadObject
-from matcher.file_io import serialize_dataclass, deserialize_dataclass, save_json_with_custom_indent
 
 # 파일 이름에서 WebMercator 좌표 추출
 def extract_coords(filename):
@@ -26,29 +20,7 @@ def extract_coords(filename):
 def transform_geometry(geometry, transformer):
     if geometry is None:
         return None
-
-    def transform_coords(coords):
-        # Convert to numpy array for vectorized transformation
-        coords_np = np.array(coords)
-        transformed = transformer.transform(coords_np[:, 0], coords_np[:, 1])
-        # Reshape back into the original coordinate form
-        return np.column_stack(transformed)
-
-    if geometry.geom_type == "LineString":
-        return LineString(transform_coords(geometry.coords))
-
-    elif geometry.geom_type == "Polygon":
-        # Transform exterior and interiors in a vectorized way
-        transformed_exterior = LineString(transform_coords(geometry.exterior.coords))
-
-        transformed_interiors = [
-            LineString(transform_coords(interior.coords)) for interior in geometry.interiors
-        ]
-
-        return Polygon(transformed_exterior, transformed_interiors)
-
     else:
-        # For other types of geometries, use the default approach
         return transform(lambda x, y, z=0: transformer.transform(x, y), geometry)
 
 
@@ -114,13 +86,18 @@ def save_to_json(data, filename):
     with open(filename, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
-def serialize_geometry(geometry):
-    if isinstance(geometry, Polygon):
-        exterior = [(x, y) for x, y in geometry.exterior.coords]
+def serialize_geometry(coord):
+    if isinstance(coord, Polygon):
+        exterior = [(x, y) for x, y in coord.exterior.coords]
         return exterior
-    elif isinstance(geometry, LineString):
-        return [(x, y) for x, y in geometry.coords]
-    return None
+    elif isinstance(coord, LineString):
+        return [(x, y) for x, y in coord.coords]
+    elif isinstance(coord, MultiPolygon):
+        return [[(x, y) for x, y in poly.exterior.coords] for poly in coord.geoms]
+    elif isinstance(coord, MultiLineString):
+        return [[(x, y) for x, y in line.coords] for line in coord.geoms]
+    else:
+        return None
 
 def prepare_data_for_json(total_road_links):
     output_data = {
@@ -139,7 +116,7 @@ def prepare_data_for_json(total_road_links):
 
 
 if __name__ == '__main__':
-    root_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도/unzip'
+    root_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도/unzip/인천국토'
     surface_links_paths = find_files(root_folder, '/HDMap_UTM52N_타원체고/B3_SURFACEMARK.shp')
     surface_links_paths.sort()
 
@@ -191,7 +168,7 @@ if __name__ == '__main__':
                         "type": total_lane_links["type"] + total_surface_links["type"]}
 
     prepared_data = prepare_data_for_json(total_road_links)
-    save_to_json(prepared_data, os.path.join(config.SaveFolder, f"total_links.json"))
+    save_to_json(prepared_data, os.path.join(config.SaveFolder, f"total_links_incheon.json"))
 
 
 
