@@ -20,6 +20,9 @@ def generate_labels():
     reader = JsonFileReader(cfg.JSON_PATH)
     # reader = ShapeFileReader(cfg.SHAPE_PATH)  # 이걸로도 똑같이 할 수 있게
     json_list = reader.list_files()
+    #
+    json_list = json_list[1367:]
+    #
     for file_path in tqdm(json_list, desc='Generating Labels'):
         geometries = reader.read(file_path)
         global_touch_map = np.zeros((len(img_center_coords), len(geometries)), dtype=np.int32)

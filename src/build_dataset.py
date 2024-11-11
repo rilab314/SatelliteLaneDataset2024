@@ -23,22 +23,21 @@ def build_dataset():
     image_save_path = os.path.join(cfg.DATASET_PATH, 'image')
     label_save_path = os.path.join(cfg.DATASET_PATH, 'label')
 
-    image_process_save(cfg.ORIGINAL_IMAGE_PATH, image_save_path)
-    label_align_save(cfg.LABEL_PATH, image_save_path, label_save_path)
+    # image_process_save(cfg.ORIGINAL_IMAGE_PATH, image_save_path)
+    try:
+        label_align_save(cfg.LABEL_PATH, image_save_path, label_save_path)
+    except Exception as e:
+        pass
 
 
 def image_process_save(image_root_path, image_save_path):
-    lonlat_to_web = Transformer.from_crs('EPSG:4326', 'EPSG:3857', always_xy=True)
-
     image_list = glob(os.path.join(image_root_path, '*.png'))
     image_list.sort()
     for img_path in image_list:
         cropped_image = crop_center(img_path, [cfg.IMAGE_SIZE_h, cfg.IMAGE_SIZE_w])
-        renamed_filename = rename_file_lonlat2webmercator(img_path, lonlat_to_web)
-
         if not os.path.exists(image_save_path):
             os.makedirs(image_save_path)
-        cv2.imwrite(os.path.join(image_save_path, renamed_filename), cropped_image)
+        cv2.imwrite(os.path.join(image_save_path, os.path.basename(img_path)), cropped_image)
 
 
 def crop_center(image_path, output_size):
@@ -56,7 +55,7 @@ def crop_center(image_path, output_size):
 def rename_file_lonlat2webmercator(img_path, transformer):
     file_name = img_path.split('/')[-1]
     lon, lat = float(file_name.split(',')[0].split('_')[1]), float(file_name.split(",")[1][:-4])
-    webmercator_cx, webmercator_cy = transformer.transform(lat, lon)
+    webmercator_cx, webmercator_cy = transformer.transform(lon, lat)
     renamed_file = file_name.replace(str(lon), str(webmercator_cx)).replace(str(lat), str(webmercator_cy))
     return renamed_file
 
@@ -67,7 +66,7 @@ def label_align_save(label_root_path, image_root_path, aligned_label_save_root_p
     for label_path in label_list:
         origin_geometries = reader.read(label_path)
 
-        label_name_coord = os.path.basename(label_path).split('.')[0]
+        label_name_coord = os.path.basename(label_path).split('.json')[0]
         image_path = glob(os.path.join(image_root_path, f"*{label_name_coord}.png"))[0]
         image = cv2.imread(image_path)
         metadata = [origin_geometries[0]]
@@ -79,20 +78,26 @@ def label_align_save(label_root_path, image_root_path, aligned_label_save_root_p
         transformed_data = transform_data(transform, obj_data)
         # save_drawn_image(image, line_mask, filtered_image, transformed_data, obj_data, image_path, cfg.DATASET_PATH)
         # label data save
-        label_save_path = os.path.join(aligned_label_save_root_path, os.path.basename(image_path))
+        label_save_path = os.path.join(aligned_label_save_root_path, os.path.basename(image_path).split('.png')[0]+'.json')
         write_to_json(label_save_path, metadata+transformed_data)
 
 
 def create_line_mask(image, geometry):
     line_mask = np.zeros_like(image[:, :, 0])
     for obj in geometry:
-        points = np.array(obj['image_points'], dtype=np.int32)
-        if obj['type_id'] in ['1', '5']:
-           cv2.fillPoly(line_mask, [points], 255)
+        if obj.geometry_type in ['MULTILINE_STRING', 'MULTIPOLYGON']:
+            for obj_points in obj.image_points:
+                draw_road_object(line_mask, obj_points, obj.type_id)
         else:
-            cv2.polylines(line_mask, [points], False, 255, 1)
+            draw_road_object(line_mask, obj.image_points, obj.type_id)
     return line_mask
 
+def draw_road_object(line_mask, object_points, object_type_id):
+    points = np.array(object_points, dtype=np.int32)
+    if object_type_id in ['1', '5']:
+        cv2.fillPoly(line_mask, [points], 255)
+    else:
+        cv2.polylines(line_mask, [points], False, 255, 1)
 
 def filter_road_objects(src_image, obj_mask):
     output_mask = filter_by_color(src_image)
@@ -136,15 +141,25 @@ def get_icp_transform(source_image, target_image, vis=0):
 
 def transform_data(transform, data):
     data_cp = copy.deepcopy(data)
-    for obj_dict in data_cp:
-        modified_points = []
-        for point in obj_dict['image_points']:
-            homogeneous_point = np.array([point[0], point[1], 1])
-            transformed_point = np.dot(transform, homogeneous_point)
-            modified_points.append([int(np.round(transformed_point[0])), int(np.round(transformed_point[1]))])
-        obj_dict['image_points'] = modified_points
+    for road_obj in data_cp:
+        if road_obj.geometry_type in ['MULTILINE_STRING', 'MULTIPOLYGON']:
+            modified_points = []
+            for lane_points in road_obj.image_points:
+                transformed_lane = transform_points(lane_points, transform)
+                modified_points.append(transformed_lane)
+            road_obj.image_points = modified_points
+        else:
+            road_obj.image_points = transform_points(road_obj.image_points, transform)
+
     return data_cp
 
+def transform_points(points, transform):
+    return [transform_point(point, transform) for point in points]
+
+def transform_point(point, transform):
+    homogeneous_point = np.array([point[0], point[1], 1])
+    transformed_point = np.dot(transform, homogeneous_point)
+    return [int(np.round(transformed_point[0])), int(np.round(transformed_point[1]))]
 
 def save_drawn_image(image, line_mask, filtered_image, transformed_data, obj_data, image_path, save_path):
     drawn_image = draw_objects(image, transformed_data)
@@ -181,3 +196,7 @@ def draw_objects(image, data):
                 prev_point = tuple(point)
 
     return image
+
+
+if __name__ == '__main__':
+    build_dataset()
