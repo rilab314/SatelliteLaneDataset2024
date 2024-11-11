@@ -24,7 +24,7 @@ def generate_labels():
         geometries = reader.read(file_path)
         global_touch_map = np.zeros((len(img_center_coords), len(geometries)), dtype=np.int32)
         for geometry_num, geometry in enumerate(geometries):
-            image_mask = update_labels(geometry, img_tlbr_coords, img_center_coords)
+            image_mask = generate_image_mask(geometry, img_tlbr_coords, img_center_coords)
             update_global_touch_map(global_touch_map, image_mask, geometry_num)
         write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords)
 
@@ -50,24 +50,35 @@ def convert_to_tlbr(center_coords: List[Tuple[str, str]]) -> np.ndarray:
     return np.vstack([x_min, y_min, x_max, y_max]).T
 
 
-def update_labels(geometry: GeometryObject, tlbr_coords: np.ndarray, center_coords: List[Tuple[str, str]]):
+def generate_image_mask(geometry: GeometryObject, tlbr_coords: np.ndarray, center_coords: List[Tuple[str, str]]):
     """
     :param geometry:
     :param tlbr_coords: (N, 4) [(x1,y1,x2,y2), ...] 
     :param center_coords: (N, 2) [(x1, y1), (x2, y2), (x3, y3), ...]
     :return: 
     """
-    updated_files = []
-    coordinates = np.array(geometry.coordinates)[np.newaxis]  # (1, M, 2)
     tlbr_coords = tlbr_coords[:, np.newaxis]  # (N, 1, 4)
-    # mask: (N, M) N = # images, M = geometries in shape file
-    mask = (tlbr_coords[..., 0] < coordinates[..., 0]) & (tlbr_coords[..., 1] < coordinates[..., 1])
-    mask &= (tlbr_coords[..., 2] > coordinates[..., 0]) & (tlbr_coords[..., 3] < coordinates[..., 1])
-    # mask: (N,)
-    image_mask = np.sum(mask, axis=1) > 0
+
+    image_mask = np.zeros(tlbr_coords.shape[0], dtype=bool)  # (N,)
+
+    if geometry.geometry_type in ['MULTILINE_STRING', 'MULTIPOLYGON']:
+        for coords in geometry.coordinates:
+            mask = calculate_mask(coords, tlbr_coords)
+            # mask: (N,)
+            image_mask |= np.any(mask, axis=1)
+    else:
+        mask = calculate_mask(geometry.coordinates, tlbr_coords)
+        # mask: (N,)
+        image_mask = np.any(mask, axis=1)
     return image_mask
 
-
+def calculate_mask(coords, tlbr_coords):
+    # tlbr_coords (N, 1, 4)
+    coordinates = np.array(coords)[np.newaxis]  # (1, M, 2)
+    # mask: (N, M)
+    mask = (tlbr_coords[..., 0] < coordinates[..., 0]) & (tlbr_coords[..., 1] < coordinates[..., 1])
+    mask &= (tlbr_coords[..., 2] > coordinates[..., 0]) & (tlbr_coords[..., 3] > coordinates[..., 1])
+    return mask
 
 def convert_to_road_object(geometry, tlbr, filename):
     image_points = convert_geometry_to_image_points(geometry.coordinates, tlbr)
