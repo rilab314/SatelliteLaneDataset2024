@@ -24,15 +24,11 @@ def build_dataset():
     label_save_path = os.path.join(cfg.DATASET_PATH, 'label')
 
     # image_process_save(cfg.ORIGINAL_IMAGE_PATH, image_save_path)
-    try:
-        label_align_save(cfg.LABEL_PATH, image_save_path, label_save_path)
-    except Exception as e:
-        pass
+    label_align_save(cfg.LABEL_PATH, image_save_path, label_save_path)
 
 
 def image_process_save(image_root_path, image_save_path):
-    image_list = glob(os.path.join(image_root_path, '*.png'))
-    image_list.sort()
+    image_list = sorted(glob(os.path.join(image_root_path, '*.png')))
     for img_path in image_list:
         cropped_image = crop_center(img_path, [cfg.IMAGE_SIZE_h, cfg.IMAGE_SIZE_w])
         if not os.path.exists(image_save_path):
@@ -65,9 +61,13 @@ def label_align_save(label_root_path, image_root_path, aligned_label_save_root_p
     label_list = reader.list_files()
     for label_path in label_list:
         origin_geometries = reader.read(label_path)
-
         label_name_coord = os.path.basename(label_path).split('.json')[0]
-        image_path = glob(os.path.join(image_root_path, f"*{label_name_coord}.png"))[0]
+        try:
+            image_path = glob(os.path.join(image_root_path, f"*{label_name_coord}.png"))[0]
+        except Exception as e:
+            print(label_name_coord)
+            continue
+
         image = cv2.imread(image_path)
         metadata = [origin_geometries[0]]
         obj_data = origin_geometries[1:]
@@ -117,7 +117,6 @@ def filter_by_color(src_image):
 
 
 def filter_large_objects(object_mask):
-    print('object_mask', object_mask.shape)
     eroded = cv2.erode(object_mask, np.ones((3, 3), np.uint8), iterations=1)
     dilated = cv2.dilate(eroded, np.ones((3, 3), np.uint8), iterations=1)
     cv2.imshow('eroded', dilated)

@@ -81,7 +81,7 @@ class JsonFileReader:
     def list_files(self) -> List[str]:
         if self.root_path is None:
             return []
-        return glob(os.path.join(self.root_path, '*.json'))
+        return sorted(glob(os.path.join(self.root_path, '*.json')))
 
     def get_file_list(self):
         return self.shape_list

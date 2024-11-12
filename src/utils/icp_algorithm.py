@@ -27,18 +27,18 @@ class IcpApplier:
         translation = np.mean(target.points, axis=0) - np.mean(source.points, axis=0)
         transformation = np.eye(4)
         transformation[:3, 3] = translation
-        print('init trans\n', transformation)
+        # print('init trans\n', transformation)
 
         reg_p2p = o3d.pipelines.registration.registration_icp(
             source, target, self.icp_thr, transformation,
             o3d.pipelines.registration.TransformationEstimationPointToPoint(),
             o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=2000))
-        print(reg_p2p)
-        print("Transformation is:")
-        print(reg_p2p.transformation)
+        # print(reg_p2p)
+        # print("Transformation is:")
+        # print(reg_p2p.transformation)
 
         evaluation = o3d.pipelines.registration.evaluate_registration(source, target, self.icp_thr, transformation)
-        print(evaluation)
+        # print(evaluation)
 
         source.paint_uniform_color([0, 0.651, 0.929])
         target.paint_uniform_color([1, 0.706, 0])
@@ -52,7 +52,7 @@ class IcpApplier:
         transform2d = np.zeros((2, 3))
         transform2d[:2, :2] = transform3d[:2, :2]
         transform2d[:2, 2] = transform3d[:2, 3]
-        print('transform2d\n', transform2d)
+        # print('transform2d\n', transform2d)
         return transform2d
 
     def transform_image(self, image, transform):

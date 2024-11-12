@@ -7,10 +7,10 @@ from glob import glob
 
 
 def lonlat_to_webmercator_for_side(lon, lat, img_size):
-    half_height_webm = 0.002641 / 1832 * img_size[0]
-    half_width_webm = 0.0010985 / 956 * img_size[1]
-    x1, y2 = lonlat_to_web.transform(lat - half_width_webm, lon - half_height_webm)
-    x2, y1 = lonlat_to_web.transform(lat + half_width_webm, lon + half_height_webm)
+    half_width_webm = 0.002641 / 1832 * img_size[0]
+    half_height_webm = 0.0010985 / 956 * img_size[1]
+    x1, y2 = lonlat_to_web.transform(lat - half_height_webm, lon - half_width_webm)
+    x2, y1 = lonlat_to_web.transform(lat + half_height_webm, lon + half_width_webm)
     return x1, y2, x2, y1
 
 

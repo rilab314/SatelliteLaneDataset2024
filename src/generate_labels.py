@@ -43,7 +43,7 @@ def convert_to_tlbr(center_coords: List[Tuple[str, str]]) -> np.ndarray:
     half_height_lat = cfg.ONE_PIXEL_LATITUDE * cfg.IMAGE_SIZE_h
     center_lonlat = np.array([(float(x), float(y)) for x, y in center_coords])
     lonlat_to_web = Transformer.from_crs('EPSG:4326', 'EPSG:3857')
-    x_min, y_min = lonlat_to_web.transform(center_lonlat[:, 1] - half_width_lon, center_lonlat[:, 0] - half_height_lat)
+    x_min, y_min = lonlat_to_web.transform(center_lonlat[:, 1] - half_height_lat, center_lonlat[:, 0] - half_width_lon)
     x_max, y_max = lonlat_to_web.transform(center_lonlat[:, 1] + half_height_lat, center_lonlat[:, 0] + half_width_lon)
 
 
@@ -80,38 +80,11 @@ def calculate_mask(coords, tlbr_coords):
     mask &= (tlbr_coords[..., 2] > coordinates[..., 0]) & (tlbr_coords[..., 3] > coordinates[..., 1])
     return mask
 
-def convert_to_road_object(geometry, tlbr, filename):
-    image_points = convert_geometry_to_image_points(geometry.coordinates, tlbr)
-    category_name = cfg.KindDict[geometry.kind]
-    # if geometry.type == '101':
-    #     geometry.type = '111'
-    type_name = cfg.TypeDict[geometry.type]
-    image_id = os.path.basename(filename).split('_')[0]
 
-    return RoadObject(id=geometry.id,
-                      category_id=geometry.kind,
-                      type_id=geometry.type,
-                      category=category_name,
-                      type=type_name,
-                      geometry_type=geometry.geometry_type,
-                      image_points=image_points,
-                      global_points=geometry.coordinates,
-                      image_id=image_id)
-
-
-def convert_geometry_to_image_points(geom, tlbr):
-    coords = np.array(geom)
-    x = coords[:, 0]
-    y = coords[:, 1]
-    x_pixels = ((cfg.IMAGE_SIZE_w * (x - tlbr[0]) / (tlbr[2] - tlbr[0])).astype(np.int32))
-    y_pixels = ((cfg.IMAGE_SIZE_h * (tlbr[3] - y) / (tlbr[3] - tlbr[1])).astype(np.int32))
-    image_points = np.stack((x_pixels, y_pixels), axis=-1)
-    return image_points.tolist()
 
 
 def update_global_touch_map(global_touch_map, image_mask, geometry_num):
     global_touch_map[image_mask, geometry_num] += 1
-
 
 def write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords):
     for geo_touch_map, tlbr, center in zip(global_touch_map, img_tlbr_coords, img_center_coords):
@@ -135,7 +108,7 @@ def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarra
                                      image_x1y1x2y2=tlbr.tolist(),
                                      coordinate_format='webmercator',
                                      format_code='EPSG:3857',
-                                     region='Seoul, Korea')]
+                                     region=cfg.REGION)]
 
     id_list = search_objects_ids(road_objects)
 
@@ -144,6 +117,44 @@ def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarra
             new_road_objects = convert_to_road_object(geometry, tlbr, filename)
             road_objects += [new_road_objects]
     write_to_json(filename, road_objects)
+
+
+def convert_to_road_object(geometry, tlbr, filename):
+    image_points = convert_geometry_to_image_points(geometry, tlbr)
+    category_name = cfg.KindDict[geometry.kind]
+    # if geometry.type == '101':
+    #     geometry.type = '111'
+    type_name = cfg.TypeDict[geometry.type]
+    image_id = os.path.basename(filename).split('_')[0]
+
+    return RoadObject(id=geometry.id,
+                      category_id=geometry.kind,
+                      type_id=geometry.type,
+                      category=category_name,
+                      type=type_name,
+                      geometry_type=geometry.geometry_type,
+                      image_points=image_points,
+                      global_points=geometry.coordinates,
+                      image_id=image_id)
+
+
+def convert_geometry_to_image_points(geom, tlbr):
+    image_points = []
+    if geom.geometry_type in ['MULTILINE_STRING', 'MULTIPOLYGON']:
+        for ge in geom.coordinates:
+            image_points.append(coords_to_image_points(ge, tlbr).tolist())
+    else:
+        image_points = coords_to_image_points(geom.coordinates, tlbr).tolist()
+    return image_points
+
+def coords_to_image_points(coords, tlbr):
+    np_coords = np.array(coords)
+    x = np_coords[:, 0]
+    y = np_coords[:, 1]
+    x_pixels = ((cfg.IMAGE_SIZE_w * (x - tlbr[0]) / (tlbr[2] - tlbr[0])).astype(np.int32))
+    y_pixels = ((cfg.IMAGE_SIZE_h * (tlbr[3] - y) / (tlbr[3] - tlbr[1])).astype(np.int32))
+    image_points = np.stack((x_pixels, y_pixels), axis=-1)
+    return image_points
 
 def search_objects_ids(road_objects: List):
     return [road_object.id for road_object in road_objects if isinstance(road_object, RoadObject)]
