@@ -13,7 +13,7 @@ from src.dto import GeometryObject, RoadObject, MetaData
 
 
 def generate_labels():
-    os.makedirs(cfg.LABEL_PATH, exist_ok=True)
+    os.makedirs(cfg.UNMATCHED_LABEL_PATH, exist_ok=True)
 
     img_center_coords = read_coordinates(filename=cfg.COORD_LIST_PATH)
     img_tlbr_coords = convert_to_tlbr(img_center_coords)
@@ -96,7 +96,7 @@ def write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords
 
 def to_label_filepath(center_coord: Tuple[str, str]) -> str:
     file_coord = center_coord[0]+","+center_coord[1]
-    file_path = os.path.join(cfg.LABEL_PATH, f"{file_coord}.json")
+    file_path = os.path.join(cfg.UNMATCHED_LABEL_PATH, f"{file_coord}.json")
     return file_path
 
 
@@ -122,8 +122,6 @@ def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarra
 def convert_to_road_object(geometry, tlbr, filename):
     image_points = convert_geometry_to_image_points(geometry, tlbr)
     category_name = cfg.KindDict[geometry.kind]
-    # if geometry.type == '101':
-    #     geometry.type = '111'
     type_name = cfg.TypeDict[geometry.type]
     image_id = os.path.basename(filename).split('_')[0]
 

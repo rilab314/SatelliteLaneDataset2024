@@ -7,12 +7,13 @@ import src.config.config as cfg
 
 
 def shape_to_json():
+    os.makedirs(cfg.JSON_PATH, exist_ok=True)
     reader = ShapeFileReader(cfg.SHAPE_PATH)
     shape_list = reader.list_files()
     for shape_path in tqdm(shape_list, desc='Shapes to JSON'):
         try:
             geometries = reader.read(shape_path)
-            save_path = os.path.join(cfg.JSON_PATH, shape_path.split('/')[-3]+'.json')
+            save_path = os.path.join(cfg.JSON_PATH, shape_path.split('/')[-3]+'-'+shape_path.split('/')[-2]+'-'+shape_path.split('/')[-1].replace('.shp','.json'))
             write_to_json(save_path, geometries)
         except Exception as e:
             print(f"Error shape_path: {shape_path}")

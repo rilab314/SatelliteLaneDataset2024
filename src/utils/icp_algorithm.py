@@ -4,7 +4,7 @@ import open3d as o3d
 
 class IcpApplier:
     def __init__(self):
-        self.icp_thr = 1000
+        self.icp_thr = 2000
 
     def icp_apply(self, source_image, target_image, vis=0):
         source_pcd = self.convert_pcd(source_image)

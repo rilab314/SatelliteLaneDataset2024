@@ -1,9 +1,15 @@
-ORIGINAL_IMAGE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/origin_lonlat'
-SHAPE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도'
+
+SHAPE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도/unzip'
+ORIGINAL_IMAGE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/origin_lonlat_incheon'
 DATASET_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/incheon_241111'
-COORD_LIST_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/incheon_241111/coord_list.json'
+
+COORD_LIST_PATH = DATASET_PATH+'/coord_list.json'
 JSON_PATH = DATASET_PATH+'/json'
-LABEL_PATH = DATASET_PATH+'/base_label'
+UNMATCHED_LABEL_PATH = DATASET_PATH+'/unmatched_label'
+IMAGE_PATH = DATASET_PATH+'/image'
+LABEL_PATH = DATASET_PATH+'/label'
+SEGMENTATION_LABEL_PATH = DATASET_PATH+'/segmentation_label'
+
 SURFACE_SHAPE_endswith_NAME = '/HDMap_UTM52N_타원체고/B3_SURFACEMARK.shp'
 LANE_SHAPE_endswith_NAME = '/HDMap_UTM52N_타원체고/B2_SURFACELINEMARK.shp'
 
@@ -68,7 +74,8 @@ TypeDict = {
 
     '1': 'arrow',
     '5': 'crosswalk',
-    None: 'None'
+    None: 'None',
+    '101': 'undefined'
 }
 
 KindDict = {
