@@ -34,11 +34,11 @@ from glob import glob
 #     json.dump(rounded_coordinates, json_file)
 
 image_paths = sorted(glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_segmentation_241113/image" + "/*.png"))
-label_paths = sorted(glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_segmentation_241113/segmentation_label" + "/*.json"))
+label_paths = sorted(glob("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/total_origin_lonlat/label" + "/*.json"))
 # for image_path in image_paths:
 #     os.rename(image_path, image_path.replace(os.path.basename(image_path), os.path.basename(image_path).split('_')[1]))
-# for label_path in label_paths:
-#     os.rename(label_path, label_path.replace(os.path.basename(label_path), os.path.basename(label_path).split('_')[1]))
+for label_path in label_paths:
+    os.rename(label_path, label_path.replace(os.path.basename(label_path), os.path.basename(label_path).split('_')[1]))
 
 # a = []
 # for label_path in label_paths:

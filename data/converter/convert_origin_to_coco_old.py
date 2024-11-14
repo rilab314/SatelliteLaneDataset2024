@@ -28,28 +28,28 @@ class ConvertOriginToCOCO:
 
         for path in tqdm(self.origin_label_list, desc="Label contents converting..."):
             origin_data = self.load_json_data(path)
-            origin2coco_annotation = self.generate_annotation_coco_format(origin_data, os.path.basename(path).split(".json")[0])
+            origin2coco_annotation = self.generate_annotation_coco_format(origin_data, os.path.basename(path).split(".")[0])
             coco_format["annotations"] += origin2coco_annotation
 
         for image_path in tqdm(self.origin_image_list, desc="Image contents converting..."):
             origin2coco_images = self.generate_images_coco_format(image_path)
             coco_format["images"].append(origin2coco_images)
 
-        coco_format["info"] = {'contributor': '', 'date_created': '2024/11/14', 'description': '', 'url': '', 'version': '1.0', 'year': 2024}
+        coco_format["info"] = {'contributor': '', 'date_created': '2024/10/24', 'description': '', 'url': '', 'version': '1.0', 'year': 2024}
         coco_format["categories"] = self.generate_categories_coco_format()
         save_path = os.path.join(self.origin_path, "coco_format.json")
         save_json_with_custom_indent(coco_format, save_path)
 
     def generate_annotation_coco_format(self, origin_data, image_id):
         annotations = []
-        # image_id = int(image_id)
+        image_id = int(image_id)
         for data in origin_data:
-            if data["class"] == "MetaData":
+            if data["type"] == "metadata":
                 continue
+            annotation_dict = self.gen_annotation_dict(data, image_id)
             #
-            if data["category_id"] in [530] or data["type_id"] in [1, 5]:
+            if annotation_dict["category_id"] in [530] or annotation_dict["type_id"] in [1, 5]:
             #
-                annotation_dict = self.gen_annotation_dict(data, image_id)
                 annotations.append(annotation_dict)
 
         return annotations
@@ -80,10 +80,10 @@ class ConvertOriginToCOCO:
                            "id": int,
                            "type_id": int,
                            "road_id": str}
-        area = self.get_area_of_polygon(data["image_points"])
-        bbox = self.get_bbox_of_polygon(data["image_points"], [768, 768, 3])
+        area = self.get_area_of_polygon(data["pixel_points"])
+        bbox = self.get_bbox_of_polygon(data["pixel_points"], [768, 768, 3])
 
-        annotation_dict["segmentation"] = data["image_points"]
+        annotation_dict["segmentation"] = data["pixel_points"]
         annotation_dict["area"] = area
         annotation_dict["iscrowd"] = 0
         annotation_dict["image_id"] = image_id
@@ -149,6 +149,6 @@ class ConvertOriginToCOCO:
         return data
 
 if __name__ == '__main__':
-    path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_dataset_241114/train"
+    path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/dataset/국토정보플랫폼/dataset/768x768/coco"
     converter = ConvertOriginToCOCO(path)
     converter.convert_process()

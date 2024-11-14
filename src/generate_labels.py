@@ -104,11 +104,11 @@ def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarra
     reader = JsonFileReader()
     road_objects = reader.read(filename)
     if not road_objects:
-        road_objects = [MetaData(type='matadata',
-                                     image_x1y1x2y2=tlbr.tolist(),
-                                     coordinate_format='webmercator',
-                                     format_code='EPSG:3857',
-                                     region=cfg.REGION)]
+        road_objects = [MetaData(type='metadata',
+                                 image_x1y1x2y2=tlbr.tolist(),
+                                 coordinate_format='webmercator',
+                                 format_code='EPSG:3857',
+                                 region=cfg.REGION)]
 
     id_list = search_objects_ids(road_objects)
 
