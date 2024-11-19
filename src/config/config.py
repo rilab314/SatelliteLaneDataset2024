@@ -1,7 +1,7 @@
 
 SHAPE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도/unzip'
 ORIGINAL_IMAGE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/origin_lonlat_incheon'
-DATASET_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/incheon_241111'
+DATASET_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241119'
 
 COORD_LIST_PATH = DATASET_PATH+'/coord_list.json'
 JSON_PATH = DATASET_PATH+'/json'
