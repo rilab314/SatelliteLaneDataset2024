@@ -6,6 +6,10 @@ import numpy as np
 from glob import glob
 from tqdm import tqdm
 
+import data.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
+import src.config.config as cfg
+
+
 def convert_src_to_detectron(src_dir, output_dir, output_name):
     os.makedirs(src_dir.replace('segmentation_label', 'detectron_label'), exist_ok=True)
     src_label_paths = sorted(glob(os.path.join(src_dir, '*.json')))
@@ -46,29 +50,29 @@ def divide_train_val(src_path, dst_path, coords_json_path):
     os.makedirs(os.path.join(dst_path, 'annotations_detectron2', 'validation'), exist_ok=True)
 
     for coord in tqdm(coords['train'], desc='Copy training dataset'):
-        label_path = os.path.join(src_path, 'segmentation_label', str(coord)+'.json')
-        moved_label_path = os.path.join(dst_path, 'annotations_detectron2', 'training', str(coord)+'.json')
+        label_path = os.path.join(src_path, 'detectron_label', str(coord)+'.png')
+        moved_label_path = os.path.join(dst_path, 'annotations_detectron2', 'training', str(coord)+'.png')
         shutil.copy(label_path, moved_label_path)
         image_path = os.path.join(src_path, 'image', str(coord)+'.png')
         moved_image_path = os.path.join(dst_path, 'images', 'training', str(coord)+'.png')
         shutil.copy(image_path, moved_image_path)
 
     for coord in tqdm(coords['validation'], desc='Copy validation dataset'):
-        label_path = os.path.join(src_path, 'segmentation_label', str(coord)+'.json')
-        moved_label_path = os.path.join(dst_path, 'annotations_detectron2', 'validation', str(coord)+'.json')
+        label_path = os.path.join(src_path, 'detectron_label', str(coord)+'.png')
+        moved_label_path = os.path.join(dst_path, 'annotations_detectron2', 'validation', str(coord)+'.png')
         shutil.copy(label_path, moved_label_path)
         image_path = os.path.join(src_path, 'image', str(coord)+'.png')
         moved_image_path = os.path.join(dst_path, 'images', 'validation', str(coord)+'.png')
         shutil.copy(image_path, moved_image_path)
 
 if __name__ == '__main__':
-    src_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241119/segmentation_label'
-    convert_src_to_detectron(src_path, 1, 1)
-
-    root_dir = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241119'
+    root_dir = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241122'
+    segmentation_path = os.path.join(root_dir, 'segmentation_label')
     label_drive = os.path.join(root_dir, 'label')
-    coords_save_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241119/dataset.json'
-    generate_train_val_coords(label_drive, coords_save_path, lon_range=[127.0648, 127.1695], lat_range=[37.4776, 37.5636])
+    coords_save_path = os.path.join(root_dir, 'dataset.json')
 
-    save_dir = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_detectron_241119'
+    save_dir = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_detectron_241122'
+
+    convert_src_to_detectron(segmentation_path, 1, 1)
+    gen_train_val_test_coords.generate_train_val_test_coords(label_drive, coords_save_path, cfg.DATASET_RATIO, [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG])
     divide_train_val(root_dir, save_dir, coords_save_path)

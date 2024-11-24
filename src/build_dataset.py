@@ -21,7 +21,7 @@ def build_dataset():
     image_save_path = cfg.IMAGE_PATH
     label_save_path = cfg.LABEL_PATH
 
-    # image_process_save(cfg.ORIGINAL_IMAGE_PATH, image_save_path)
+    image_process_save(cfg.ORIGINAL_IMAGE_PATH, image_save_path)
     label_align_save(cfg.UNMATCHED_LABEL_PATH, image_save_path, label_save_path)
 
 

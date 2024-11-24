@@ -6,9 +6,12 @@ import numpy as np
 from glob import glob
 from tqdm import tqdm
 
+import src.config.config as cfg
+import data.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
 from matcher.config.config import TotalDataset
 from matcher.file_io import serialize_dataclass, deserialize_dataclass, save_json_with_custom_indent
 from matcher.config.ID_name_mapping import *
+
 
 
 class ConvertOriginToCOCO:
@@ -25,16 +28,49 @@ class ConvertOriginToCOCO:
         os.makedirs(os.path.join(self.save_path, 'train2017'), exist_ok=True)
         os.makedirs(os.path.join(self.save_path, 'val2017'), exist_ok=True)
         os.makedirs(os.path.join(self.save_path, 'test2017'), exist_ok=True)
+        gen_train_val_test_coords.generate_train_val_test_coords(os.path.join(self.origin_path, 'label'), self.divide_json, cfg.DATASET_RATIO, [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG])
         with open(self.divide_json, 'r') as f:
             coords = json.load(f)
         train_image_list = [os.path.join(self.origin_path, 'image', coord+'.png') for coord in coords['train']]
         train_label_list = [os.path.join(self.origin_path, 'label', coord+'.json') for coord in coords['train']]
         val_image_list = [os.path.join(self.origin_path, 'image', coord+'.png') for coord in coords['validation']]
         val_label_list = [os.path.join(self.origin_path, 'label', coord+'.json') for coord in coords['validation']]
+        test_image_list = [os.path.join(self.origin_path, 'image', coord+'.png') for coord in coords['test']]
         self.convert_annotation(train_image_list, train_label_list, 'instances_train2017.json')
         self.convert_annotation(val_image_list, val_label_list, 'instances_val2017.json')
-        self.copy_divide_image(train_image_list, val_image_list)
+        self.copy_divide_image(train_image_list, val_image_list, test_image_list)
 
+    def generate_train_val_test_coords(self, drive, json_save_path, dataset_ratio, regions_config):
+        label_paths = glob(os.path.join(drive, "*.json"))
+        dataset = {"train": [], "validation": [], "test": []}
+
+        for region in regions_config:
+            label_coords = []
+            lon_range = region['LONGITUDE_RANGE']
+            lat_range = region['LATITUDE_RANGE']
+
+            for label_path in label_paths:
+                try:
+                    label_lon, label_lat = map(float, os.path.basename(label_path)[:-5].split(','))
+                    if lon_range[0] <= label_lon <= lon_range[1] and lat_range[0] <= label_lat <= lat_range[1]:
+                        label_coords.append((label_lon, label_lat, os.path.basename(label_path)[:-5]))
+                except ValueError:
+                    print(f"Skipping invalid file: {label_path}")
+
+            label_coords.sort(key=lambda x: x[0])
+
+            total = len(label_coords)
+            train_end = int(total * dataset_ratio['train'])
+            val_end = train_end + int(total * dataset_ratio['validation'])
+
+            dataset["train"].extend([coord[2] for coord in label_coords[:train_end]])  # Names for train
+            dataset["validation"].extend(
+                [coord[2] for coord in label_coords[train_end:val_end]])  # Names for validation
+            dataset["test"].extend([coord[2] for coord in label_coords[val_end:]])  # Names for test
+
+        # Save the dataset split into JSON
+        with open(json_save_path, 'w') as f:
+            json.dump(dataset, f)
 
     def convert_annotation(self, image_list, label_list, save_filename):
         coco_format = {'info': {},
@@ -165,20 +201,20 @@ class ConvertOriginToCOCO:
             data = json.load(f)
         return data
 
-    def copy_divide_image(self, train_image_list, val_image_list):
+    def copy_divide_image(self, train_image_list, val_image_list, test_image_list):
         for image_path in tqdm(train_image_list, desc='Copy training dataset'):
             moved_image_path = os.path.join(self.save_path, 'train2017', os.path.basename(image_path))
             shutil.copy(image_path, moved_image_path)
-
         for image_path in tqdm(val_image_list, desc='Copy validation dataset'):
             moved_image_path = os.path.join(self.save_path, 'val2017', os.path.basename(image_path))
             shutil.copy(image_path, moved_image_path)
+        for image_path in tqdm(test_image_list, desc='Copy test dataset'):
             moved_image_path = os.path.join(self.save_path, 'test2017', os.path.basename(image_path))
             shutil.copy(image_path, moved_image_path)
 
 if __name__ == '__main__':
-    path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241119'
-    save_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_coco_241119'
+    path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241122'
+    save_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_coco_241122'
     divide_json = path+'/dataset.json'
     converter = ConvertOriginToCOCO(path, save_path, divide_json)
     converter.train_val_divide_process()

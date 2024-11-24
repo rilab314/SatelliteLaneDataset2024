@@ -1,7 +1,7 @@
 
 SHAPE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도/unzip'
-ORIGINAL_IMAGE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/origin_lonlat_incheon'
-DATASET_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241119'
+DATASET_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241122'
+ORIGINAL_IMAGE_PATH = DATASET_PATH + '/origin_image'
 
 COORD_LIST_PATH = DATASET_PATH+'/coord_list.json'
 JSON_PATH = DATASET_PATH+'/json'
@@ -44,6 +44,11 @@ IMAGE_LATITUDE_DIM = 0
 # LATITUDE_STRIDE = IMAGE_LATITUDE_DIM / 2.
 IMAGE_SIZE_w = 768
 IMAGE_SIZE_h = 768
+
+DATASET_RATIO = {'train': 0.7,
+                 'validation': 0.1,
+                 'test': 0.2}
+
 
 TypeDict = {
     '111': 'yellow_single_solid',
@@ -92,6 +97,7 @@ KindDict = {
     '530': 'stop_line',
     '531': 'safety_zone',
     '535': 'bicycle_lane',
+
     '524': 'no_stopping_zone',
     '5321': 'crosswalk',
     '533': 'raised_crosswalk',

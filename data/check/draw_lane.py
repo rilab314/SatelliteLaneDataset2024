@@ -33,18 +33,18 @@ def draw_objects(image, data):
         elif obj["geometry_type"] == "MULTIPOLYGON":
             for polygon in obj["image_points"]:
                 if len(polygon) > 1:
-                    # cv2.polylines(image, [np.array(polygon, dtype=np.int32)], True, (255, 255, 0), 1)
-                    cv2.fillPoly(image, [np.array(polygon, dtype=np.int32)], color=(255, 255, 0))
+                    cv2.polylines(image, [np.array(polygon, dtype=np.int32)], True, (255, 255, 0), 1)
+                    # cv2.fillPoly(image, [np.array(polygon, dtype=np.int32)], color=(255, 255, 0))
 
     return image
 
 if __name__ == '__main__':
     # img_paths = sorted(glob(os.path.join("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_dataset_241111/image", "*.png")))
-    label_paths = sorted(glob(os.path.join("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/incheon_241111/label", "*.json")))
+    # label_paths = sorted(glob(os.path.join("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/incheon_241111/label", "*.json")))
     # label_paths = sorted(glob(os.path.join("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/incheon_241111/segmentation_label", "*.json")))
-    label_paths = sorted(glob(os.path.join("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/total_origin_lonlat/label", "*.json")))
-
-    for label_path in label_paths:
+    label_paths = sorted(glob(os.path.join("/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/total_origin_lonlat/missing_images/label", "*.json")))
+    from tqdm import tqdm
+    for label_path in tqdm(label_paths):
         img_path = label_path.replace("label", "image").replace(".json", ".png")
         with open(label_path, "r") as f:
             data = json.load(f)
@@ -55,4 +55,4 @@ if __name__ == '__main__':
         # cv2.imshow("image", image)
         # cv2.imshow(f"drawn_image", drawn_image)
         # cv2.waitKey(0)
-        cv2.imwrite(img_path.replace("image", "drawn_image"), drawn_image)
+        cv2.imwrite(img_path.replace("/image", "/drawn_image"), drawn_image)
