@@ -10,6 +10,7 @@ import src.config.config as cfg
 from src.utils.json_file_io import JsonFileReader, write_to_json
 from src.utils.shape_file_reader import ShapeFileReader
 from src.dto import GeometryObject, RoadObject, MetaData
+from src.utils.remove_duplicate_objects_by_points import remove_duplicate_objects
 
 
 def generate_labels():
@@ -27,6 +28,7 @@ def generate_labels():
             image_mask = generate_image_mask(geometry, img_tlbr_coords, img_center_coords)
             update_global_touch_map(global_touch_map, image_mask, geometry_num)
         write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords)
+    remove_duplicate_objects(cfg.LABEL_PATH)
 
 def read_coordinates(filename: str) -> List[Tuple[str, str]]:
     '''

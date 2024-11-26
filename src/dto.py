@@ -3,8 +3,6 @@ from typing import List, Tuple
 import cv2
 from enum import Enum
 
-from rasterio.features import geometry_window
-from sympy.polys.polyoptions import Polys
 
 
 class GeometryType(Enum):
