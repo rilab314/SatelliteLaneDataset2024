@@ -1,8 +1,9 @@
 import os
 import cv2
 import numpy as np
+import json
 from pyproj import Transformer
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 
 def lonlat_to_pixel(
@@ -18,28 +19,42 @@ def lonlat_to_pixel(
     return pixel_x, pixel_y
 
 
-def extract_coordinates_from_filenames(folder_path: str) -> List[Tuple[float, float]]:
-    coordinates = []
-    for filename in os.listdir(folder_path):
-        if filename.endswith(".png"):
-            try:
-                lon, lat = map(float, filename.replace(".png", "").split(","))
-                coordinates.append((lon, lat))
-            except ValueError:
-                print(f"Skipping invalid filename: {filename}")
-    return coordinates
-
-
-def draw_transparent_points(
-        image: np.ndarray, coordinates: List[Tuple[float, float]], lon_min: float, lon_max: float, lat_min: float,
-        lat_max: float, color: Tuple[int, int, int] = (255, 191, 0), radius: int = 5, alpha: float = 0.65
+def draw_dataset_points(
+        image: np.ndarray, dataset: Dict[str, List[str]], lon_min: float, lon_max: float, lat_min: float, lat_max: float,
+        colors: Dict[str, Tuple[int, int, int]], radius: int, alpha: float
 ):
     overlay = image.copy()
     img_height, img_width = image.shape[:2]
-    for lon, lat in coordinates:
-        pixel_x, pixel_y = lonlat_to_pixel(lon, lat, lon_min, lon_max, lat_min, lat_max, img_width, img_height)
-        cv2.circle(overlay, (pixel_x, pixel_y), radius, color, -1)
+
+    for split, coordinates in dataset.items():
+        color = colors[split]
+        for coord in coordinates:
+            lon, lat = map(float, coord.split(","))
+            pixel_x, pixel_y = lonlat_to_pixel(lon, lat, lon_min, lon_max, lat_min, lat_max, img_width, img_height)
+            cv2.circle(overlay, (pixel_x, pixel_y), radius, color, -1)
+
     cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, image)
+
+
+def crop_and_draw_dataset(
+        image: np.ndarray, dataset: Dict[str, List[str]], lon_min: float, lon_max: float, lat_min: float, lat_max: float,
+        crop_box: Tuple[int, int, int, int], upscale_factor: int, colors: Dict[str, Tuple[int, int, int]],
+        radius: int, alpha: float
+) -> np.ndarray:
+    x1, y1, x2, y2 = crop_box
+    cropped_image = image[y1:y2, x1:x2].copy()
+
+    cropped_upscaled = upscale_image(cropped_image, upscale_factor)
+
+    draw_dataset_points(
+        cropped_upscaled, dataset, lon_min, lon_max, lat_min, lat_max,
+        colors, radius * upscale_factor, alpha
+    )
+
+    cropped_with_points = downscale_image(cropped_upscaled, (x2 - x1, y2 - y1))
+
+    image[y1:y2, x1:x2] = cropped_with_points
+    return image
 
 
 def upscale_image(image: np.ndarray, scale: int) -> np.ndarray:
@@ -51,52 +66,71 @@ def downscale_image(image: np.ndarray, original_size: Tuple[int, int]) -> np.nda
     return cv2.resize(image, original_size, interpolation=cv2.INTER_AREA)
 
 
-def process_image(
-        images_path: str, background_image_path: str, output_path: str, lon_min: float, lon_max: float,
-        lat_min: float, lat_max: float, upscale_factor: int = 20, point_color: Tuple[int, int, int] = (0, 255, 255),
-        point_radius: int = 5, transparency: float = 0.3
+def load_dataset(dataset_path: str) -> Dict[str, List[str]]:
+    with open(dataset_path, "r") as f:
+        return json.load(f)
+
+
+def process_image_with_dataset(
+        dataset_path: str, background_image_path: str, output_path: str, lon_min: float, lon_max: float,
+        lat_min: float, lat_max: float, crop_box: Tuple[int, int, int, int], upscale_factor: int = 20,
+        colors: Dict[str, Tuple[int, int, int]] = None, radius: int = 5, alpha: float = 0.5
 ):
+    if colors is None:
+        colors = {
+            "train": (0, 255, 0),  # Green
+            "validation": (255, 255, 0),  # Yellow
+            "test": (0, 0, 255)  # Red
+        }
+
     image = cv2.imread(background_image_path)
     if image is None:
         print(f"Failed to load image: {background_image_path}")
         return
 
-    coordinates = extract_coordinates_from_filenames(images_path)
-    original_size = image.shape[1], image.shape[0]
+    dataset = load_dataset(dataset_path)
 
-    # Upscale the image
-    image_upscaled = upscale_image(image, upscale_factor)
-
-    # Draw points on the upscaled image
-    draw_transparent_points(
-        image_upscaled, coordinates, lon_min, lon_max, lat_min, lat_max,
-        color=point_color, radius=point_radius * upscale_factor, alpha=transparency
+    image_with_points = crop_and_draw_dataset(
+        image, dataset, lon_min, lon_max, lat_min, lat_max,
+        crop_box, upscale_factor, colors, radius, alpha
     )
 
-    # Downscale the image back to the original size
-    image_final = downscale_image(image_upscaled, original_size)
-
-    # Save the output
-    cv2.imwrite(output_path, image_final)
+    cv2.imwrite(output_path, image_with_points)
     print(f"Output saved to {output_path}")
 
 
 if __name__ == "__main__":
     root_dir = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/figure/figure2"
-    images_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241122/image"
+    dataset_path = os.path.join(root_dir, "dataset.json")
 
-    process_image(
-        images_path=images_path,
-        background_image_path=os.path.join(root_dir, "seoul.png"),
-        output_path=os.path.join(root_dir, "output_seoul.png"),
+    colors = {
+        "train": (0, 255, 0),  # Green
+        "validation": (255, 255, 0),  # Yellow
+        "test": (0, 0, 255)  # Red
+    }
+
+    process_image_with_dataset(
+        dataset_path=dataset_path,
+        background_image_path=os.path.join(root_dir, "seoul_nobox.png"),
+        output_path=os.path.join(root_dir, "output_seoul_dataset.png"),
         lon_min=126.8255, lon_max=127.1516,
-        lat_min=37.4738, lat_max=37.6202
+        lat_min=37.4738, lat_max=37.6202,
+        crop_box=(556, 144, 2452, 1214),
+        upscale_factor=20,
+        colors=colors,
+        radius=3,
+        alpha=0.5
     )
 
-    process_image(
-        images_path=images_path,
-        background_image_path=os.path.join(root_dir, "incheon.png"),
-        output_path=os.path.join(root_dir, "output_incheon.png"),
+    process_image_with_dataset(
+        dataset_path=dataset_path,
+        background_image_path=os.path.join(root_dir, "incheon_nobox.png"),
+        output_path=os.path.join(root_dir, "output_incheon_dataset.png"),
         lon_min=126.5987, lon_max=126.8068,
-        lat_min=37.3648, lat_max=37.5910
+        lat_min=37.3648, lat_max=37.5910,
+        crop_box=(134, 858, 1340, 2514),
+        upscale_factor=20,
+        colors=colors,
+        radius=5,
+        alpha=0.5
     )
