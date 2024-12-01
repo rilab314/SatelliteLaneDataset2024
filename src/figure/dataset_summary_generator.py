@@ -3,19 +3,22 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 from glob import glob
-from collections import defaultdict
+from collections import defaultdict, Counter
 from typing import Tuple, List, Dict
 
 
-def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int]]:
+def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int], Counter, Counter]:
     """
-    Calculate dataset statistics and class counts.
+    Calculate dataset statistics, class counts, type counts, and instances per image.
 
     Args:
         label_folder (str): Path to the folder containing label files.
 
     Returns:
-        Tuple[pd.DataFrame, Dict[str, int]]: Dataframe of overall statistics and dictionary of class counts.
+        Tuple[pd.DataFrame, Dict[str, int], Counter, Counter]: Dataframe of overall statistics,
+                                                              dictionary of class counts,
+                                                              Counter of type counts,
+                                                              Counter of instances per image.
     """
     label_files = glob(os.path.join(label_folder, "*.json"))
 
@@ -23,15 +26,21 @@ def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int
     total_instances = 0
     total_points = 0
     class_counts = defaultdict(int)
+    type_counts = Counter()
+    instances_per_image = Counter()
 
     for label_file in label_files:
         with open(label_file, 'r') as f:
             data = json.load(f)
+            image_instances = 0
             for obj in data:
-                if obj['class'] == 'RoadObject' and obj['category'] != 'None':
+                if obj['class'] == 'RoadObject' and obj['category'] != 'None' and obj['type'] != 'undefined':
                     total_instances += 1
                     total_points += len(obj['image_points'])
                     class_counts[obj['category']] += 1
+                    type_counts[obj['type']] += 1
+                    image_instances += 1
+            instances_per_image[image_instances] += 1
 
     # Calculate averages
     avg_instances_per_image = total_instances / total_images if total_images else 0
@@ -43,52 +52,89 @@ def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int
         "average": [None, f"{avg_instances_per_image:.2f} per image", f"{avg_points_per_instance:.2f} per instance"]
     }, index=["images", "instances", "points"])
 
-    return statistics_df, dict(class_counts)
+    return statistics_df, dict(class_counts), type_counts, instances_per_image
 
 
-def plot_class_distribution(class_counts: Dict[str, int], output_path: str):
+def plot_sorted_bar(data: Dict, x_label: str, y_label: str, title: str, output_path: str):
     """
-    Plot a bar graph for the distribution of classes.
+    Plot a sorted bar graph for the given data.
 
     Args:
-        class_counts (Dict[str, int]): Dictionary of class counts.
-        output_path (str): Path to save the class distribution plot.
+        data (Dict): Dictionary to plot.
+        x_label (str): Label for the x-axis.
+        y_label (str): Label for the y-axis.
+        title (str): Title of the plot.
+        output_path (str): Path to save the plot.
     """
-    classes = list(class_counts.keys())
-    counts = list(class_counts.values())
+    sorted_data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
+    x = list(sorted_data.keys())
+    y = list(sorted_data.values())
 
     plt.figure(figsize=(12, 6))
-    plt.bar(classes, counts)
+    plt.bar(x, y)
     plt.xticks(rotation=45, ha='right')
-    plt.xlabel("Class")
-    plt.ylabel("Count")
-    plt.title("Class Distribution")
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
     plt.tight_layout()
     plt.savefig(output_path)
     plt.show()
 
 
-def generate_dataset_summary(label_folder: str, output_plot_path: str):
+def plot_instances_per_image(instances_per_image: Counter, output_path: str):
     """
-    Generate and display dataset statistics and class distribution plot.
+    Plot the number of images having a specific number of instances.
+
+    Args:
+        instances_per_image (Counter): Counter with the number of instances per image.
+        output_path (str): Path to save the plot.
+    """
+    sorted_data = dict(sorted(instances_per_image.items()))
+    x = list(sorted_data.keys())
+    y = list(sorted_data.values())
+
+    plt.figure(figsize=(12, 6))
+    plt.bar(x, y)
+    plt.xticks(rotation=45, ha='right')
+    plt.xlabel("# of instances per image")
+    plt.ylabel("# of images")
+    plt.title("Distribution of Images by Number of Instances")
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.show()
+
+
+def generate_dataset_summary(label_folder: str, output_dir: str):
+    """
+    Generate and display dataset statistics and class/type/category distribution plots.
 
     Args:
         label_folder (str): Path to the folder containing label files.
-        output_plot_path (str): Path to save the class distribution plot.
+        output_dir (str): Directory to save the output plots.
     """
-    os.makedirs(os.path.dirname(output_plot_path), exist_ok=True)
-    statistics_df, class_counts = calculate_statistics(label_folder)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Calculate statistics
+    statistics_df, class_counts, type_counts, instances_per_image = calculate_statistics(label_folder)
 
     # Display the statistics as a DataFrame
     print("Dataset Statistics:")
     print(statistics_df)
 
-    # Plot and save the class distribution
-    plot_class_distribution(class_counts, output_plot_path)
+    # Plot class distribution
+    plot_sorted_bar(class_counts, "Category Names", "# of Instances", "Instances per Category",
+                    os.path.join(output_dir, "category_distribution.png"))
+
+    # Plot type distribution
+    plot_sorted_bar(type_counts, "Type Names", "# of Instances", "Instances per Type",
+                    os.path.join(output_dir, "type_distribution.png"))
+
+    # Plot instances per image distribution
+    plot_instances_per_image(instances_per_image, os.path.join(output_dir, "instances_per_image_distribution.png"))
 
 
 if __name__ == "__main__":
     label_folder_path = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/label"
-    output_plot_path = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/figure/summary/class_distribution.png"
+    output_dir = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/figure/summary"
 
-    generate_dataset_summary(label_folder_path, output_plot_path)
+    generate_dataset_summary(label_folder_path, output_dir)
