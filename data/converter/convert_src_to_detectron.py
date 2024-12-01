@@ -18,13 +18,13 @@ def convert_src_to_detectron(src_dir, output_dir, output_name):
         cv2.imwrite(src_label_path.replace('segmentation_label', 'detectron_label').replace('.json', '.png'), semantic_image)
 
 def generate_semantic_image(src_label_path):
-    semantic_image = np.zeros((768, 768), dtype=np.uint8)
+    semantic_image = np.ones((768, 768), dtype=np.uint8)
     with open(src_label_path, 'r') as f:
         data = json.load(f)
     for road_object in data[1:]:
         points = road_object['image_points']
         polygon_points = np.array(points, dtype=np.int32)
-        cv2.fillPoly(semantic_image, [polygon_points], 1)
+        cv2.fillPoly(semantic_image, [polygon_points], 2)
     return semantic_image
 
 def generate_train_val_coords(drive, json_save_path, lon_range, lat_range):
@@ -66,12 +66,12 @@ def divide_train_val(src_path, dst_path, coords_json_path):
         shutil.copy(image_path, moved_image_path)
 
 if __name__ == '__main__':
-    root_dir = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241122'
+    root_dir = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
     segmentation_path = os.path.join(root_dir, 'segmentation_label')
     label_drive = os.path.join(root_dir, 'label')
     coords_save_path = os.path.join(root_dir, 'dataset.json')
 
-    save_dir = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_detectron_241122'
+    save_dir = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_detectron_241125'
 
     convert_src_to_detectron(segmentation_path, 1, 1)
     gen_train_val_test_coords.generate_train_val_test_coords(label_drive, coords_save_path, cfg.DATASET_RATIO, [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG])

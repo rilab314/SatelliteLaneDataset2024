@@ -28,7 +28,7 @@ def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int
         with open(label_file, 'r') as f:
             data = json.load(f)
             for obj in data:
-                if obj['class'] == 'RoadObject':
+                if obj['class'] == 'RoadObject' and obj['category'] != 'None':
                     total_instances += 1
                     total_points += len(obj['image_points'])
                     class_counts[obj['category']] += 1
@@ -76,7 +76,7 @@ def generate_dataset_summary(label_folder: str, output_plot_path: str):
         label_folder (str): Path to the folder containing label files.
         output_plot_path (str): Path to save the class distribution plot.
     """
-    # Calculate statistics and class counts
+    os.makedirs(os.path.dirname(output_plot_path), exist_ok=True)
     statistics_df, class_counts = calculate_statistics(label_folder)
 
     # Display the statistics as a DataFrame
@@ -88,7 +88,7 @@ def generate_dataset_summary(label_folder: str, output_plot_path: str):
 
 
 if __name__ == "__main__":
-    label_folder_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241122/label"
-    output_plot_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/figure/summary/class_distribution.png"
+    label_folder_path = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/label"
+    output_plot_path = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/figure/summary/class_distribution.png"
 
     generate_dataset_summary(label_folder_path, output_plot_path)
