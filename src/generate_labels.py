@@ -106,8 +106,7 @@ def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarra
     reader = JsonFileReader()
     road_objects = reader.read(filename)
     if not road_objects:
-        road_objects = [MetaData(type='metadata',
-                                 image_x1y1x2y2=tlbr.tolist(),
+        road_objects = [MetaData(image_x1y1x2y2=tlbr.tolist(),
                                  coordinate_format='webmercator',
                                  format_code='EPSG:3857',
                                  region=cfg.REGION)]
@@ -125,17 +124,15 @@ def convert_to_road_object(geometry, tlbr, filename):
     image_points = convert_geometry_to_image_points(geometry, tlbr)
     category_name = cfg.KindDict[geometry.kind]
     type_name = cfg.TypeDict[geometry.type]
-    image_id = os.path.basename(filename).split('_')[0]
 
     return RoadObject(id=geometry.id,
                       category_id=geometry.kind,
-                      type_id=geometry.type,
                       category=category_name,
+                      type_id=geometry.type,
                       type=type_name,
                       geometry_type=geometry.geometry_type,
                       image_points=image_points,
-                      global_points=geometry.coordinates,
-                      image_id=image_id)
+                      global_points=geometry.coordinates)
 
 
 def convert_geometry_to_image_points(geom, tlbr):
