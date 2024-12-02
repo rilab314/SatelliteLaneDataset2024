@@ -6,6 +6,8 @@ from glob import glob
 from collections import defaultdict, Counter
 from typing import Tuple, List, Dict
 
+from matplotlib.pyplot import figure
+
 
 def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int], Counter, Counter]:
     """
@@ -34,7 +36,7 @@ def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int
             data = json.load(f)
             image_instances = 0
             for obj in data:
-                if obj['class'] == 'RoadObject' and obj['category'] != 'None' and obj['type'] != 'undefined':
+                if obj['class'] == 'RoadObject' and obj['category'] != 'None' and obj['type'] != 'undefined' and obj['category'] != 'others':
                     total_instances += 1
                     total_points += len(obj['image_points'])
                     class_counts[obj['category']] += 1
@@ -55,7 +57,7 @@ def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int
     return statistics_df, dict(class_counts), type_counts, instances_per_image
 
 
-def plot_sorted_bar(data: Dict, x_label: str, y_label: str, title: str, output_path: str):
+def plot_sorted_bar(data: Dict, x_label: str, y_label: str, title: str, output_path: str, figure_size: Tuple = (12, 6),font_size: int = 12, add_font_size: int = 12):
     """
     Plot a sorted bar graph for the given data.
 
@@ -65,52 +67,61 @@ def plot_sorted_bar(data: Dict, x_label: str, y_label: str, title: str, output_p
         y_label (str): Label for the y-axis.
         title (str): Title of the plot.
         output_path (str): Path to save the plot.
+        font_size (int): Font size for labels and title.
     """
     sorted_data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
     x = list(sorted_data.keys())
     y = list(sorted_data.values())
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=figure_size)
     plt.bar(x, y)
-    plt.xticks(rotation=45, ha='right')
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.title(title)
+    plt.xticks(rotation=45, ha='right', fontsize=add_font_size)
+    plt.yticks(fontsize=font_size*0.9)
+    plt.xlabel(x_label, fontsize=font_size)
+    plt.ylabel(y_label, fontsize=font_size)
+    plt.title(title, fontsize=font_size)
     plt.tight_layout()
     plt.savefig(output_path)
     plt.show()
 
 
-def plot_instances_per_image(instances_per_image: Counter, output_path: str):
+def plot_instances_per_image(instances_per_image: Counter, output_path: str, font_size: int = 12):
     """
     Plot the number of images having a specific number of instances.
 
     Args:
         instances_per_image (Counter): Counter with the number of instances per image.
         output_path (str): Path to save the plot.
+        font_size (int): Font size for labels and title.
     """
     sorted_data = dict(sorted(instances_per_image.items()))
     x = list(sorted_data.keys())
     y = list(sorted_data.values())
 
+    # Limit the x-axis to 400
+    x_limited = [val for val in x if val <= 400]
+    y_limited = y[:len(x_limited)]
+
     plt.figure(figsize=(12, 6))
-    plt.bar(x, y)
-    plt.xticks(rotation=45, ha='right')
-    plt.xlabel("# of instances per image")
-    plt.ylabel("# of images")
-    plt.title("Distribution of Images by Number of Instances")
+    plt.bar(x_limited, y_limited)
+    plt.xticks(rotation=45, ha='right', fontsize=font_size)
+    plt.yticks(fontsize=font_size)
+    plt.xlabel("# of instances per image", fontsize=font_size)
+    plt.ylabel("# of images", fontsize=font_size)
+    plt.title("Distribution of Images by Number of Instances", fontsize=font_size)
     plt.tight_layout()
     plt.savefig(output_path)
     plt.show()
 
 
-def generate_dataset_summary(label_folder: str, output_dir: str):
+def generate_dataset_summary(label_folder: str, output_dir: str, font_size: int = 12):
     """
     Generate and display dataset statistics and class/type/category distribution plots.
 
     Args:
         label_folder (str): Path to the folder containing label files.
         output_dir (str): Directory to save the output plots.
+        font_size (int): Font size for labels and title.
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -123,18 +134,22 @@ def generate_dataset_summary(label_folder: str, output_dir: str):
 
     # Plot class distribution
     plot_sorted_bar(class_counts, "Category Names", "# of Instances", "Instances per Category",
-                    os.path.join(output_dir, "category_distribution.png"))
+                    os.path.join(output_dir, "category_distribution.png"), figure_size=(17, 7), font_size=font_size+1, add_font_size=font_size+1)
 
     # Plot type distribution
     plot_sorted_bar(type_counts, "Type Names", "# of Instances", "Instances per Type",
-                    os.path.join(output_dir, "type_distribution.png"))
+                    os.path.join(output_dir, "type_distribution.png"), figure_size=(14, 7.5), font_size=font_size, add_font_size=font_size)
 
     # Plot instances per image distribution
-    plot_instances_per_image(instances_per_image, os.path.join(output_dir, "instances_per_image_distribution.png"))
+    plot_instances_per_image(instances_per_image, os.path.join(output_dir, "instances_per_image_distribution.png"),
+                             font_size=font_size)
 
 
 if __name__ == "__main__":
     label_folder_path = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/label"
     output_dir = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/figure/summary"
 
-    generate_dataset_summary(label_folder_path, output_dir)
+    # Font size parameter
+    font_size = 25
+
+    generate_dataset_summary(label_folder_path, output_dir, font_size=font_size)

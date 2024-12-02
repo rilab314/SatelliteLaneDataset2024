@@ -213,8 +213,8 @@ class ConvertOriginToCOCO:
             shutil.copy(image_path, moved_image_path)
 
 if __name__ == '__main__':
-    path = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241122'
-    save_path = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_coco_241122'
+    path = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
+    save_path = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_coco_241125'
     divide_json = path+'/dataset.json'
     converter = ConvertOriginToCOCO(path, save_path, divide_json)
     converter.train_val_divide_process()

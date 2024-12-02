@@ -33,3 +33,9 @@ def generate_train_val_test_coords(drive, json_save_path, dataset_ratio, regions
     # Save the dataset split into JSON
     with open(json_save_path, 'w') as f:
         json.dump(dataset, f)
+
+if __name__ == '__main__':
+    import src.config.config as cfg
+    path = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
+    divide_json = path + '/dataset.json'
+    generate_train_val_test_coords(os.path.join(path, 'label'), divide_json, cfg.DATASET_RATIO, [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG])
