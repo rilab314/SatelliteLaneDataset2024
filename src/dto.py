@@ -38,7 +38,6 @@ class RoadObject:
 
 @dc.dataclass(unsafe_hash=True)
 class MetaData:
-    type: str
     image_x1y1x2y2: List  # Coordinates representing the outermost edges of the image [x1, y1, x2, y2]
     coordinate_format: str  # Format of the coordinates (e.g., web mercator)
     format_code: str  # Code representing the specific coordinate format (e.g., EPSG code)
