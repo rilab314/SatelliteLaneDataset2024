@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 import data.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
 import src.config.config as cfg
-from src.utils.generate_segmentation_labels import generate_segmentation_labels
+from src.utils.labels_to_segmentation_labels import generate_segmentation_labels
 
 def convert_src_to_ade20k(src_dir):
     os.makedirs(src_dir.replace('segmentation_label', 'ade20k_label'), exist_ok=True)

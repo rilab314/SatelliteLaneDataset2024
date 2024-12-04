@@ -1,5 +1,5 @@
 import build_dataset
-from src.utils import generate_segmentation_labels
+from src.utils import labels_to_segmentation_labels
 
 if __name__ == '__main__':
     # shape_to_json_main.shape_to_json()
