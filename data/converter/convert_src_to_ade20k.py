@@ -8,14 +8,14 @@ from tqdm import tqdm
 
 import data.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
 import src.config.config as cfg
+from src.utils.generate_segmentation_labels import generate_segmentation_labels
 
-
-def convert_src_to_detectron(src_dir, output_dir, output_name):
-    os.makedirs(src_dir.replace('segmentation_label', 'detectron_label'), exist_ok=True)
+def convert_src_to_ade20k(src_dir):
+    os.makedirs(src_dir.replace('segmentation_label', 'ade20k_label'), exist_ok=True)
     src_label_paths = sorted(glob(os.path.join(src_dir, '*.json')))
     for src_label_path in tqdm(src_label_paths):
         semantic_image = generate_semantic_image(src_label_path)
-        cv2.imwrite(src_label_path.replace('segmentation_label', 'detectron_label').replace('.json', '.png'), semantic_image)
+        cv2.imwrite(src_label_path.replace('segmentation_label', 'ade20k_label').replace('.json', '.png'), semantic_image)
 
 def generate_semantic_image(src_label_path):
     semantic_image = np.ones((768, 768), dtype=np.uint8)
@@ -46,33 +46,28 @@ def divide_train_val(src_path, dst_path, coords_json_path):
         coords = json.load(f)
     os.makedirs(os.path.join(dst_path, 'images', 'training'), exist_ok=True)
     os.makedirs(os.path.join(dst_path, 'images', 'validation'), exist_ok=True)
-    os.makedirs(os.path.join(dst_path, 'annotations_detectron2', 'training'), exist_ok=True)
-    os.makedirs(os.path.join(dst_path, 'annotations_detectron2', 'validation'), exist_ok=True)
+    os.makedirs(os.path.join(dst_path, 'annotations', 'training'), exist_ok=True)
+    os.makedirs(os.path.join(dst_path, 'annotations', 'validation'), exist_ok=True)
 
     for coord in tqdm(coords['train'], desc='Copy training dataset'):
-        label_path = os.path.join(src_path, 'detectron_label', str(coord)+'.png')
-        moved_label_path = os.path.join(dst_path, 'annotations_detectron2', 'training', str(coord)+'.png')
+        label_path = os.path.join(src_path, 'ade20k_label', str(coord)+'.png')
+        moved_label_path = os.path.join(dst_path, 'annotations', 'training', str(coord)+'.png')
         shutil.copy(label_path, moved_label_path)
         image_path = os.path.join(src_path, 'image', str(coord)+'.png')
         moved_image_path = os.path.join(dst_path, 'images', 'training', str(coord)+'.png')
         shutil.copy(image_path, moved_image_path)
 
     for coord in tqdm(coords['validation'], desc='Copy validation dataset'):
-        label_path = os.path.join(src_path, 'detectron_label', str(coord)+'.png')
-        moved_label_path = os.path.join(dst_path, 'annotations_detectron2', 'validation', str(coord)+'.png')
+        label_path = os.path.join(src_path, 'ade20k_label', str(coord)+'.png')
+        moved_label_path = os.path.join(dst_path, 'annotations', 'validation', str(coord)+'.png')
         shutil.copy(label_path, moved_label_path)
         image_path = os.path.join(src_path, 'image', str(coord)+'.png')
         moved_image_path = os.path.join(dst_path, 'images', 'validation', str(coord)+'.png')
         shutil.copy(image_path, moved_image_path)
 
 if __name__ == '__main__':
-    root_dir = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
-    segmentation_path = os.path.join(root_dir, 'segmentation_label')
-    label_drive = os.path.join(root_dir, 'label')
-    coords_save_path = os.path.join(root_dir, 'dataset.json')
-
-    save_dir = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_detectron_241125'
-
-    convert_src_to_detectron(segmentation_path, 1, 1)
-    gen_train_val_test_coords.generate_train_val_test_coords(label_drive, coords_save_path, cfg.DATASET_RATIO, [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG])
-    divide_train_val(root_dir, save_dir, coords_save_path)
+    coords_save_path = os.path.join(cfg.DATASET_PATH, 'dataset.json')
+    generate_segmentation_labels()
+    convert_src_to_ade20k(cfg.SEGMENTATION_LABEL_PATH)
+    gen_train_val_test_coords.generate_train_val_test_coords(cfg.LABEL_PATH, coords_save_path, cfg.DATASET_RATIO, [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG])
+    divide_train_val(cfg.DATASET_PATH, cfg.CUSTOM_ADE20K_PATH, coords_save_path)
