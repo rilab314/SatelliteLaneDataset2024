@@ -27,8 +27,8 @@ class GeometryObject:
 class RoadObject:
     id: str  # unique id for each geometric object
     category_id: str  # kind id
-    type_id: str  # type id
     category: str  # kind name
+    type_id: str  # type id
     type: str  # type name
     geometry_type: GeometryType  # Type of geometry (e.g., POLYGON or LINE_STRING)
     image_points: List[Tuple[int,int]]  # List of (x, y) points in image coordinates
