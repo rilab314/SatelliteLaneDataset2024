@@ -1,4 +1,5 @@
-import shape_to_json_main, generate_labels, build_dataset, generate_segmentation_labels
+import build_dataset
+from src.utils import generate_segmentation_labels
 
 if __name__ == '__main__':
     # shape_to_json_main.shape_to_json()

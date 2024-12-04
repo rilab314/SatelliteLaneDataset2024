@@ -28,13 +28,13 @@ def generate_labels():
             image_mask = generate_image_mask(geometry, img_tlbr_coords, img_center_coords)
             update_global_touch_map(global_touch_map, image_mask, geometry_num)
         write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords)
-    remove_duplicate_objects(cfg.LABEL_PATH)
+
+    remove_duplicate_objects(cfg.UNMATCHED_LABEL_PATH)
 
 def read_coordinates(filename: str) -> List[Tuple[str, str]]:
     '''
     :param filename: 
     :return: [(x1, y1), (x2, y2), (x3, y3), ...]
-    좌표값은 모든 자릿수가 반드시 문자열로 보존이 되어야 해당 파일을 열 수 있다. float이나 np.array로 바꿔선 안됨
     '''
     with open(filename, 'r') as f:
         return json.load(f)
@@ -44,9 +44,8 @@ def convert_to_tlbr(center_coords: List[Tuple[str, str]]) -> np.ndarray:
     half_width_lon = cfg.ONE_PIXEL_LONGITUDE * cfg.IMAGE_SIZE_w
     half_height_lat = cfg.ONE_PIXEL_LATITUDE * cfg.IMAGE_SIZE_h
     center_lonlat = np.array([(float(x), float(y)) for x, y in center_coords])
-    lonlat_to_web = Transformer.from_crs('EPSG:4326', 'EPSG:3857')
-    x_min, y_min = lonlat_to_web.transform(center_lonlat[:, 1] - half_height_lat, center_lonlat[:, 0] - half_width_lon)
-    x_max, y_max = lonlat_to_web.transform(center_lonlat[:, 1] + half_height_lat, center_lonlat[:, 0] + half_width_lon)
+    x_min, y_min =  center_lonlat[:, 0] - half_width_lon, center_lonlat[:, 1] - half_height_lat
+    x_max, y_max =  center_lonlat[:, 0] + half_width_lon, center_lonlat[:, 1] + half_height_lat
 
 
     return np.vstack([x_min, y_min, x_max, y_max]).T
@@ -106,10 +105,18 @@ def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarra
     reader = JsonFileReader()
     road_objects = reader.read(filename)
     if not road_objects:
+        center_lon = (tlbr[0]+tlbr[2])/2
+        center_lat = (tlbr[1]+tlbr[3])/2
+        if (cfg.SEOUL_CONFIG['LONGITUDE_RANGE'][0] <= center_lon <= cfg.SEOUL_CONFIG['LONGITUDE_RANGE'][1]
+                and cfg.SEOUL_CONFIG['LATITUDE_RANGE'][0] <= center_lat <= cfg.SEOUL_CONFIG['LATITUDE_RANGE'][1]):
+            region = cfg.SEOUL_CONFIG['REGION']
+        elif (cfg.INCHEON_CONFIG['LONGITUDE_RANGE'][0] <= center_lon <= cfg.INCHEON_CONFIG['LONGITUDE_RANGE'][1]
+              and cfg.INCHEON_CONFIG['LATITUDE_RANGE'][0] <= center_lat <= cfg.INCHEON_CONFIG['LATITUDE_RANGE'][1]):
+            region = cfg.INCHEON_CONFIG['REGION']
         road_objects = [MetaData(image_x1y1x2y2=tlbr.tolist(),
-                                 coordinate_format='webmercator',
-                                 format_code='EPSG:3857',
-                                 region=cfg.REGION)]
+                                 coordinate_format='longitude, latitude',
+                                 format_code='EPSG:4326',
+                                 region=region)]
 
     id_list = search_objects_ids(road_objects)
 

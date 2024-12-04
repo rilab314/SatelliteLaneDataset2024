@@ -14,20 +14,23 @@ def generate_coord_list():
     reader = JsonFileReader(cfg.JSON_PATH)
     # reader = ShapeFileReader(cfg.SHAPE_PATH)  # 이걸로도 똑같이 할 수 있게
     json_list = reader.list_files()
+    region_configs = [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG]
+    coordinates = []
+    for region_config in region_configs:
+        map_cols = int((region_config['LATITUDE_RANGE'][1] - region_config['LATITUDE_RANGE'][0]) // region_config['LATITUDE_STRIDE'] + 1)
+        map_rows = int((region_config['LONGITUDE_RANGE'][1] - region_config['LONGITUDE_RANGE'][0]) // region_config['LONGITUDE_STRIDE'] + 1)
+        touch_map = np.zeros((map_rows, map_cols), dtype=np.int32)
+        for file_path in tqdm(json_list, desc='Generating coordinate list'):
+            geometries = reader.read(file_path)
+            for geometry in geometries:
+                update_touch_map(touch_map, geometry, region_config)
 
-    map_cols = int((cfg.LATITUDE_RANGE[1] - cfg.LATITUDE_RANGE[0]) // cfg.LATITUDE_STRIDE + 1)
-    map_rows = int((cfg.LONGITUDE_RANGE[1] - cfg.LONGITUDE_RANGE[0]) // cfg.LONGITUDE_STRIDE + 1)
-    touch_map = np.zeros((map_rows, map_cols), dtype=np.int32)
-    for file_path in tqdm(json_list, desc='Generating coordinate list'):
-        geometries = reader.read(file_path)
-        for geometry in geometries:
-            update_touch_map(touch_map, geometry)
-
-    coordinates = touch_map_to_coordinates(touch_map)
+        coordinates += touch_map_to_coordinates(touch_map, region_config)
+        
     write_coordinates_to_file(coordinates)
 
 
-def update_touch_map(touch_map: np.array, geometry: GeometryObject):
+def update_touch_map(touch_map: np.array, geometry: GeometryObject, region_config: dict):
     if geometry.geometry_type in ['MULTIPOLYGON', 'MULTILINE_STRING']:
         flattened_list = [item for sublist in geometry.coordinates for item in sublist]
         lane_webmercator = np.array(flattened_list)
@@ -38,15 +41,15 @@ def update_touch_map(touch_map: np.array, geometry: GeometryObject):
     lane = lane_transform_for_numpy(lane_webmercator, web_to_lonlat)
 
     in_range_mask = (
-            (cfg.LONGITUDE_RANGE[0] < lane[:, 0]) & (lane[:, 0] < cfg.LONGITUDE_RANGE[1]) &
-            (cfg.LATITUDE_RANGE[0] < lane[:, 1]) & (lane[:, 1] < cfg.LATITUDE_RANGE[1])
+            (region_config['LONGITUDE_RANGE'][0] < lane[:, 0]) & (lane[:, 0] < region_config['LONGITUDE_RANGE'][1]) &
+            (region_config['LATITUDE_RANGE'][0] < lane[:, 1]) & (lane[:, 1] < region_config['LATITUDE_RANGE'][1])
     )
     lane_in_range = lane[in_range_mask]
 
-    lon_indices = ((lane_in_range[:, 0] - cfg.LONGITUDE_RANGE[0]) // cfg.LONGITUDE_STRIDE).astype(int)
-    lat_indices = ((lane_in_range[:, 1] - cfg.LATITUDE_RANGE[0]) // cfg.LATITUDE_STRIDE).astype(int)
-    lon_diffs = np.abs((lon_indices * cfg.LONGITUDE_STRIDE + cfg.LONGITUDE_RANGE[0]) - lane_in_range[:, 0])
-    lat_diffs = np.abs((lat_indices * cfg.LATITUDE_STRIDE + cfg.LATITUDE_RANGE[0]) - lane_in_range[:, 1])
+    lon_indices = ((lane_in_range[:, 0] - region_config['LONGITUDE_RANGE'][0]) // region_config['LONGITUDE_STRIDE']).astype(int)
+    lat_indices = ((lane_in_range[:, 1] - region_config['LATITUDE_RANGE'][0]) // region_config['LATITUDE_STRIDE']).astype(int)
+    lon_diffs = np.abs((lon_indices * region_config['LONGITUDE_STRIDE'] + region_config['LONGITUDE_RANGE'][0]) - lane_in_range[:, 0])
+    lat_diffs = np.abs((lat_indices * region_config['LATITUDE_STRIDE'] + region_config['LATITUDE_RANGE'][0]) - lane_in_range[:, 1])
 
     valid_points_mask = (lon_diffs < 0.000575) & (lat_diffs < 0.0004775)
     valid_lon_indices = lon_indices[valid_points_mask]
@@ -61,16 +64,16 @@ def lane_transform_for_numpy(lane: np.array, transformer: Transformer) -> np.arr
     return lane
 
 
-def touch_map_to_coordinates(touch_map: np.array) -> List[Tuple[str, str]]:
+def touch_map_to_coordinates(touch_map: np.array, region_config: dict) -> List[Tuple[str, str]]:
     coordinates = []
     for x, y in zip(*np.where(touch_map > 0)):
-        coordinates.append((str(x* cfg.LONGITUDE_STRIDE + cfg.LONGITUDE_RANGE[0]),
-                            str(y*cfg.LATITUDE_STRIDE + cfg.LATITUDE_RANGE[0])))
+        coordinates.append((str(x* region_config['LONGITUDE_STRIDE'] + region_config['LONGITUDE_RANGE'][0]),
+                            str(y*region_config['LATITUDE_STRIDE'] + region_config['LATITUDE_RANGE'][0])))
     return coordinates
 
 
 def write_coordinates_to_file(coordinates: List[Tuple[str, str]]):
-    save_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_dataset_241031/coord_list.json'
+    save_path = cfg.COORD_LIST_PATH
     with open(save_path, 'w') as f:
         json.dump(coordinates, f)
 

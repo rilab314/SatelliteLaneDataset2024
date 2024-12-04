@@ -33,7 +33,6 @@ class RoadObject:
     geometry_type: GeometryType  # Type of geometry (e.g., POLYGON or LINE_STRING)
     image_points: List[Tuple[int,int]]  # List of (x, y) points in image coordinates
     global_points: List[Tuple[float,float]]  # List of (longitude, latitude) points in global coordinates
-    image_id: int  # Unique ID for the associated image
 
 
 @dc.dataclass(unsafe_hash=True)

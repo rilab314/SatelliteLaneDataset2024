@@ -15,6 +15,7 @@ class ShapeFileReader:
         self.root_path = root_path
         self.shape_list = self.list_files()
         self.UTM_to_webmercator_transformer = Transformer.from_crs('EPSG:32652', 'EPSG:3857', always_xy=True)
+        self.UTM_to_lonlat_transformer = Transformer.from_crs('EPSG:32652', 'EPSG:4326', always_xy=True)
 
     def list_files(self) -> List[str]:
         surface_links_paths = sorted(self.find_files(self.root_path, cfg.SURFACE_SHAPE_endswith_NAME))
@@ -34,7 +35,7 @@ class ShapeFileReader:
 
     def read(self, shape_path: str) -> List[GeometryObject]:
         geo_df = gpd.read_file(shape_path)
-        coordinates = geo_df['geometry'].apply(self.transform_geometry, transformer=self.UTM_to_webmercator_transformer)
+        coordinates = geo_df['geometry'].apply(self.transform_geometry, transformer=self.UTM_to_lonlat_transformer)
         geometries = []
         for coord, geo_id, geo_kind, geo_type in zip(coordinates, geo_df['ID'], geo_df['Kind'], geo_df['Type']):
             geom = self.convert_to_geometry_object(coord, geo_id, geo_kind, geo_type, shape_path)
