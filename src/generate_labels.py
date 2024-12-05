@@ -46,8 +46,6 @@ def convert_to_tlbr(center_coords: List[Tuple[str, str]]) -> np.ndarray:
     center_lonlat = np.array([(float(x), float(y)) for x, y in center_coords])
     x_min, y_min =  center_lonlat[:, 0] - half_width_lon, center_lonlat[:, 1] - half_height_lat
     x_max, y_max =  center_lonlat[:, 0] + half_width_lon, center_lonlat[:, 1] + half_height_lat
-
-
     return np.vstack([x_min, y_min, x_max, y_max]).T
 
 
@@ -81,9 +79,6 @@ def calculate_mask(coords, tlbr_coords):
     mask &= (tlbr_coords[..., 2] > coordinates[..., 0]) & (tlbr_coords[..., 3] > coordinates[..., 1])
     return mask
 
-
-
-
 def update_global_touch_map(global_touch_map, image_mask, geometry_num):
     global_touch_map[image_mask, geometry_num] += 1
 
@@ -107,12 +102,14 @@ def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarra
     if not road_objects:
         center_lon = (tlbr[0]+tlbr[2])/2
         center_lat = (tlbr[1]+tlbr[3])/2
+
         if (cfg.SEOUL_CONFIG['LONGITUDE_RANGE'][0] <= center_lon <= cfg.SEOUL_CONFIG['LONGITUDE_RANGE'][1]
                 and cfg.SEOUL_CONFIG['LATITUDE_RANGE'][0] <= center_lat <= cfg.SEOUL_CONFIG['LATITUDE_RANGE'][1]):
             region = cfg.SEOUL_CONFIG['REGION']
         elif (cfg.INCHEON_CONFIG['LONGITUDE_RANGE'][0] <= center_lon <= cfg.INCHEON_CONFIG['LONGITUDE_RANGE'][1]
               and cfg.INCHEON_CONFIG['LATITUDE_RANGE'][0] <= center_lat <= cfg.INCHEON_CONFIG['LATITUDE_RANGE'][1]):
             region = cfg.INCHEON_CONFIG['REGION']
+
         road_objects = [MetaData(image_x1y1x2y2=tlbr.tolist(),
                                  coordinate_format='longitude, latitude',
                                  format_code='EPSG:4326',
@@ -122,12 +119,12 @@ def update_file(filename: str, geometries: List[GeometryObject], tlbr: np.ndarra
 
     for geometry in geometries:
         if geometry.id not in id_list:
-            new_road_objects = convert_to_road_object(geometry, tlbr, filename)
+            new_road_objects = convert_to_road_object(geometry, tlbr)
             road_objects += [new_road_objects]
     write_to_json(filename, road_objects)
 
 
-def convert_to_road_object(geometry, tlbr, filename):
+def convert_to_road_object(geometry, tlbr):
     image_points = convert_geometry_to_image_points(geometry, tlbr)
     category_name = cfg.KindDict[geometry.kind]
     type_name = cfg.TypeDict[geometry.type]

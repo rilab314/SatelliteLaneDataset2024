@@ -24,7 +24,6 @@ def generate_coord_list():
             geometries = reader.read(file_path)
             for geometry in geometries:
                 update_touch_map(touch_map, geometry, region_config)
-
         coordinates += touch_map_to_coordinates(touch_map, region_config)
         
     write_coordinates_to_file(coordinates)
@@ -33,12 +32,10 @@ def generate_coord_list():
 def update_touch_map(touch_map: np.array, geometry: GeometryObject, region_config: dict):
     if geometry.geometry_type in ['MULTIPOLYGON', 'MULTILINE_STRING']:
         flattened_list = [item for sublist in geometry.coordinates for item in sublist]
-        lane_webmercator = np.array(flattened_list)
+        lane = np.array(flattened_list)
     else:
-        lane_webmercator = np.array(geometry.coordinates)
+        lane = np.array(geometry.coordinates)
 
-    web_to_lonlat = Transformer.from_crs('EPSG:3857', 'EPSG:4326', always_xy=True)
-    lane = lane_transform_for_numpy(lane_webmercator, web_to_lonlat)
 
     in_range_mask = (
             (region_config['LONGITUDE_RANGE'][0] < lane[:, 0]) & (lane[:, 0] < region_config['LONGITUDE_RANGE'][1]) &

@@ -7,10 +7,9 @@ from glob import glob
 from tqdm import tqdm
 
 import src.config.config as cfg
-import data.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
-from matcher.config.config import TotalDataset
-from matcher.file_io import serialize_dataclass, deserialize_dataclass, save_json_with_custom_indent
-from matcher.config.ID_name_mapping import *
+import src.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
+from src.utils.json_file_io import save_json_with_custom_indent
+from src.config.ID_name_mapping import *
 
 
 
