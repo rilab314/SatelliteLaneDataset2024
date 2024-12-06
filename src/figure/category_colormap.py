@@ -13,6 +13,7 @@ KindDictColors = {
     '530': (255, 102, 77),  # stop_line
     '531': (128, 77, 255),  # safety_zone
     '535': (77, 255, 128),  # bicycle_lane
+
     '524': (153, 255, 77),  # no_stopping_zone
     '5321': (77, 255, 255),  # crosswalk
     '533': (255, 77, 128),  # raised_crosswalk

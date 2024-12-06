@@ -9,8 +9,8 @@ from tqdm import tqdm
 from shapely.geometry import LineString, MultiLineString, Polygon, MultiPolygon
 
 import src.config.config as cfg
-import data.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
-from src.utils.json_file_io import JsonFileReader
+import src.config.config_converter as cfg_converter
+import src.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
 
 
 def generate_ade20k_dataset(src_label_dir: str, dst_dir: str, coords_json_path: str):
@@ -75,27 +75,29 @@ def generate_semantic_image(label_path: str) -> np.ndarray:
     Returns:
         np.ndarray: Semantic segmentation image.
     """
-    semantic_image = np.ones((768, 768), dtype=np.uint8)
+    semantic_image = np.zeros((768, 768), dtype=np.uint8)
     with open(label_path, 'r') as f:
         data = json.load(f)
 
+    category_to_label_id = {value: idx for idx, value in enumerate(cfg_converter.ADE20K_CATEGORIES.values())}
     for road_object in data[1:]:
-        if road_object['category'] == 'center_line':  # Filter specific categories
+        if road_object['category'] in category_to_label_id:
+            label_id = category_to_label_id[road_object['category']] + 1
             geometry_type = road_object['geometry_type']
             image_points = road_object['image_points']
 
             # Convert LINE_STRING to POLYGON if necessary
             if geometry_type in ['LINE_STRING', 'MULTILINE_STRING']:
-                image_points = expand_line_to_polygon(image_points, buffer_size=2.5)
+                image_points = expand_line_to_polygon(image_points, buffer_size=1.5)
 
             # Draw polygons on the semantic image
             if isinstance(image_points[0][0], list):  # MultiPolygon case
                 for polygon in image_points:
                     polygon_points = np.array(polygon, dtype=np.int32)
-                    cv2.fillPoly(semantic_image, [polygon_points], 2)
+                    cv2.fillPoly(semantic_image, [polygon_points], label_id)
             else:  # Single Polygon case
                 polygon_points = np.array(image_points, dtype=np.int32)
-                cv2.fillPoly(semantic_image, [polygon_points], 2)
+                cv2.fillPoly(semantic_image, [polygon_points], label_id)
 
     return semantic_image
 

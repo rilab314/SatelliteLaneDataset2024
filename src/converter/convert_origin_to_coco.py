@@ -99,7 +99,7 @@ class ConvertOriginToCOCO:
             if data['class'] == 'MetaData':
                 continue
             #
-            if data['category_id'] in ['530'] or data['type_id'] in ['1', '5']:
+            if data['category_id'] in ['530', '531'] or data['type_id'] in ['1', '5']:
             #
                 annotation_dict = self.gen_annotation_dict(data, image_id)
                 annotations.append(annotation_dict)
@@ -212,8 +212,8 @@ class ConvertOriginToCOCO:
             shutil.copy(image_path, moved_image_path)
 
 if __name__ == '__main__':
-    path = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
-    save_path = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_coco_241125'
+    path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
+    save_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_coco_241205'
     divide_json = path+'/dataset.json'
     converter = ConvertOriginToCOCO(path, save_path, divide_json)
     converter.train_val_divide_process()
