@@ -76,11 +76,20 @@ def generate_semantic_image(label_path: str) -> np.ndarray:
         np.ndarray: Semantic segmentation image.
     """
     semantic_image = np.zeros((768, 768), dtype=np.uint8)
+    category_priority = {
+        key: idx for idx, key in enumerate(cfg_converter.sorted_ADE20K_CATEGORIES.keys())
+    }
+    category_to_label_id = {value: idx for idx, value in enumerate(cfg_converter.ADE20K_CATEGORIES.values())}
     with open(label_path, 'r') as f:
         data = json.load(f)
 
-    category_to_label_id = {value: idx for idx, value in enumerate(cfg_converter.ADE20K_CATEGORIES.values())}
-    for road_object in data[1:]:
+    road_objects = sorted(
+        data[1:],  # Exclude metadata
+        # Sort road objects in reverse priority order (higher priority objects are drawn last),
+        # ensuring that objects with lower priority do not obscure higher priority objects.
+        key=lambda obj: -category_priority.get(obj['category_id'], float('-inf'))
+    )
+    for road_object in road_objects:
         if road_object['category'] in category_to_label_id:
             label_id = category_to_label_id[road_object['category']] + 1
             geometry_type = road_object['geometry_type']
