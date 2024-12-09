@@ -38,7 +38,7 @@ class ConvertOriginToCOCO:
 
         self.convert_annotation(train_image_list, train_label_list, 'instances_train2017.json')
         self.convert_annotation(val_image_list, val_label_list, 'instances_val2017.json')
-        self.copy_divide_image(train_image_list, val_image_list, test_image_list)
+        # self.copy_divide_image(train_image_list, val_image_list, test_image_list)
 
     def convert_annotation(self, image_list, label_list, save_filename):
         coco_format = {'info': {},
@@ -79,8 +79,8 @@ class ConvertOriginToCOCO:
                     data['bbox'] = self.get_bbox_of_polygon(data['image_points'], [cfg.IMAGE_SIZE_h, cfg.IMAGE_SIZE_w])
                 safety_zone_objects.append(data)
 
-        merged_safety_zones = self.merge_safety_zone_objects(safety_zone_objects, threshold=15)
-        # merged_safety_zones = self.merge_safety_zone_objects_by_id(safety_zone_objects, threshold=20)
+        merged_safety_zones = self.merge_safety_zone_objects_line(safety_zone_objects, threshold=3)
+        merged_safety_zones = self.merge_safety_zone_objects(merged_safety_zones, threshold=3)
 
         for merged_object in merged_safety_zones:
             annotation_dict = self.gen_annotation_dict(merged_object, image_id)
@@ -197,6 +197,67 @@ class ConvertOriginToCOCO:
             self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
 
         return merged_objects
+    def merge_safety_zone_objects_line(self, objects, threshold: int = 10):
+        """
+        Merge safety zone objects based on the proximity of their start or end points.
+
+        Args:
+            objects (list): List of objects containing 'image_points'.
+            threshold (int): Maximum distance to consider two points as close.
+
+        Returns:
+            list: Merged safety zone objects.
+        """
+        merged_objects = []
+        used = [False] * len(objects)
+
+        def are_points_close(points1, points2, threshold):
+            """
+            Check if the start or end points of two point lists are close.
+
+            Args:
+                points1 (list): First set of points.
+                points2 (list): Second set of points.
+                threshold (int): Distance threshold.
+
+            Returns:
+                bool: True if points are close, False otherwise.
+            """
+            start1, end1 = points1[0], points1[-1]
+            start2, end2 = points2[0], points2[-1]
+
+            def distance(p1, p2):
+                return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
+
+            return (
+                    distance(start1, start2) <= threshold or
+                    distance(start1, end2) <= threshold or
+                    distance(end1, start2) <= threshold or
+                    distance(end1, end2) <= threshold
+            )
+
+        for i, obj1 in enumerate(objects):
+            if used[i]:
+                continue
+
+            merged_object = obj1.copy()
+            merged_points = obj1['image_points'][:]
+            used[i] = True
+
+            for j, obj2 in enumerate(objects):
+                if i != j and not used[j] and are_points_close(merged_points, obj2['image_points'], threshold):
+                    used[j] = True
+                    merged_points += obj2['image_points']
+
+            # Sort merged points to maintain continuity
+            merged_points = sorted(merged_points, key=lambda p: (p[0], p[1]))
+            merged_object['image_points'] = merged_points
+            merged_object['bbox'] = self.get_bbox_of_polygon(merged_points, [cfg.IMAGE_SIZE_h, cfg.IMAGE_SIZE_w])
+            merged_objects.append(merged_object)
+        # if merged_objects:
+        #     print(merged_objects[0]['image_id'])
+        #     self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
+        return merged_objects
 
     def merge_safety_zone_objects(self, objects, threshold: int = 10):
         merged_objects = []
@@ -237,9 +298,11 @@ class ConvertOriginToCOCO:
             merged_object['bbox'] = merged_bbox
             merged_objects.append(merged_object)
         # if merged_objects:
-            # print(merged_objects[0]['image_id'])
-            # self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
+        #     print(merged_objects[0]['image_id'])
+        #     self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
         return merged_objects
+
+
 
     def visualize_bboxes(self, objects, merged_objects, image_id='', image_size=(768, 768)):
         """

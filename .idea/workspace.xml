@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1072e41e-ad08-47d8-99a8-d321f20a6222" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/config/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/converter/convert_origin_to_coco.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/converter/convert_origin_to_coco.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/converter/convert_src_to_ade20k.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/converter/convert_src_to_ade20k.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -301,7 +300,7 @@
       <workItem from="1733300634317" duration="65000" />
       <workItem from="1733303700363" duration="28696000" />
       <workItem from="1733506638670" duration="8312000" />
-      <workItem from="1733705898890" duration="14817000" />
+      <workItem from="1733705898890" duration="19112000" />
     </task>
     <servers />
   </component>
@@ -468,7 +467,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/converter/convert_origin_to_coco.py</url>
-          <line>284</line>
+          <line>346</line>
           <option name="timeStamp" value="432" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -486,7 +485,7 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_2nd_copy.coverage" NAME="road_objects_2nd_copy Coverage Results" MODIFIED="1729291510381" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
-    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$convert_origin_to_coco.coverage" NAME="convert_origin_to_coco Coverage Results" MODIFIED="1733722880907" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/converter" />
+    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$convert_origin_to_coco.coverage" NAME="convert_origin_to_coco Coverage Results" MODIFIED="1733730093302" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/converter" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_copy1.coverage" NAME="road_objects_copy1 Coverage Results" MODIFIED="1731149580997" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$add_image_id.coverage" NAME="add_image_id Coverage Results" MODIFIED="1729176717990" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher/label_modify" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_copy4.coverage" NAME="road_objects_copy4 Coverage Results" MODIFIED="1731074382034" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
