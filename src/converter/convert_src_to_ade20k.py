@@ -97,7 +97,9 @@ def generate_semantic_image(label_path: str) -> np.ndarray:
 
             # Convert LINE_STRING to POLYGON if necessary
             if geometry_type in ['LINE_STRING', 'MULTILINE_STRING']:
-                image_points = expand_line_to_polygon(image_points, buffer_size=1.5)
+                image_points = expand_line_to_polygon(image_points, buffer_size=2.5)
+            else:
+                continue
 
             # Draw polygons on the semantic image
             if isinstance(image_points[0][0], list):  # MultiPolygon case
