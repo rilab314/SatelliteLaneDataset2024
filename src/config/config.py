@@ -9,7 +9,7 @@ UNMATCHED_LABEL_PATH = DATASET_PATH+'/unmatched_label'
 IMAGE_PATH = DATASET_PATH+'/image'
 LABEL_PATH = DATASET_PATH+'/label'
 
-CUSTOM_ADE20K_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_ade20k_241207'
+CUSTOM_ADE20K_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_ade20k_241209'
 
 SURFACE_SHAPE_endswith_NAME = '/HDMap_UTM52N_타원체고/B3_SURFACEMARK.shp'
 LANE_SHAPE_endswith_NAME = '/HDMap_UTM52N_타원체고/B2_SURFACELINEMARK.shp'

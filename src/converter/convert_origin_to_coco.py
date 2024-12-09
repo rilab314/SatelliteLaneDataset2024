@@ -35,41 +35,10 @@ class ConvertOriginToCOCO:
         val_image_list = [os.path.join(self.origin_path, 'image', coord+'.png') for coord in coords['validation']]
         val_label_list = [os.path.join(self.origin_path, 'label', coord+'.json') for coord in coords['validation']]
         test_image_list = [os.path.join(self.origin_path, 'image', coord+'.png') for coord in coords['test']]
+
         self.convert_annotation(train_image_list, train_label_list, 'instances_train2017.json')
         self.convert_annotation(val_image_list, val_label_list, 'instances_val2017.json')
         self.copy_divide_image(train_image_list, val_image_list, test_image_list)
-
-    def generate_train_val_test_coords(self, drive, json_save_path, dataset_ratio, regions_config):
-        label_paths = glob(os.path.join(drive, "*.json"))
-        dataset = {"train": [], "validation": [], "test": []}
-
-        for region in regions_config:
-            label_coords = []
-            lon_range = region['LONGITUDE_RANGE']
-            lat_range = region['LATITUDE_RANGE']
-
-            for label_path in label_paths:
-                try:
-                    label_lon, label_lat = map(float, os.path.basename(label_path)[:-5].split(','))
-                    if lon_range[0] <= label_lon <= lon_range[1] and lat_range[0] <= label_lat <= lat_range[1]:
-                        label_coords.append((label_lon, label_lat, os.path.basename(label_path)[:-5]))
-                except ValueError:
-                    print(f"Skipping invalid file: {label_path}")
-
-            label_coords.sort(key=lambda x: x[0])
-
-            total = len(label_coords)
-            train_end = int(total * dataset_ratio['train'])
-            val_end = train_end + int(total * dataset_ratio['validation'])
-
-            dataset["train"].extend([coord[2] for coord in label_coords[:train_end]])  # Names for train
-            dataset["validation"].extend(
-                [coord[2] for coord in label_coords[train_end:val_end]])  # Names for validation
-            dataset["test"].extend([coord[2] for coord in label_coords[val_end:]])  # Names for test
-
-        # Save the dataset split into JSON
-        with open(json_save_path, 'w') as f:
-            json.dump(dataset, f)
 
     def convert_annotation(self, image_list, label_list, save_filename):
         coco_format = {'info': {},
@@ -94,33 +63,30 @@ class ConvertOriginToCOCO:
 
     def generate_annotation_coco_format(self, origin_data, image_id):
         annotations = []
-        # image_id = int(image_id)
+        safety_zone_objects = []
         for data in origin_data:
             if data['class'] == 'MetaData':
                 continue
             #
-            if data['category_id'] in ['530', '531'] or data['type_id'] in ['1', '5']:
-            #
+            if data['category_id'] in ['530'] or data['type_id'] in ['1', '5']:
                 annotation_dict = self.gen_annotation_dict(data, image_id)
                 annotations.append(annotation_dict)
+            elif data['category_id'] == '531': # safety_zone
+                if 'bbox' not in data:
+                    data['image_points'] = self.filter_array(data['image_points'])
+                    if not data['image_points']:
+                        continue
+                    data['bbox'] = self.get_bbox_of_polygon(data['image_points'], [cfg.IMAGE_SIZE_h, cfg.IMAGE_SIZE_w])
+                safety_zone_objects.append(data)
 
+        merged_safety_zones = self.merge_safety_zone_objects(safety_zone_objects, threshold=15)
+        # merged_safety_zones = self.merge_safety_zone_objects_by_id(safety_zone_objects, threshold=20)
+
+        for merged_object in merged_safety_zones:
+            annotation_dict = self.gen_annotation_dict(merged_object, image_id)
+            annotations.append(annotation_dict)
+            #
         return annotations
-
-    def generate_categories_coco_format(self):
-        categories = []
-        for kind_id, kind_name in KindDict.items():
-            type_key = next((key for key, value in TypeDict.items() if value == kind_name), None)
-            if type_key:
-                supercategory = TypeDict_English[TypeDict[type_key]]
-            else:
-                supercategory = 'unknown'
-
-            categories.append({
-                'id': int(kind_id),
-                'name': KindDict_English[kind_name],
-                'supercategory': supercategory
-            })
-        return categories
 
     def gen_annotation_dict(self, data, image_id):
         annotation_dict = {'segmentation': [],
@@ -133,7 +99,7 @@ class ConvertOriginToCOCO:
                            'type_id': int,
                            'road_id': str}
         area = self.get_area_of_polygon(data['image_points'])
-        bbox = self.get_bbox_of_polygon(data['image_points'], [768, 768, 3])
+        bbox = self.get_bbox_of_polygon(data['image_points'], [cfg.IMAGE_SIZE_h, cfg.IMAGE_SIZE_w])
 
         annotation_dict['segmentation'] = data['image_points']
         annotation_dict['area'] = area
@@ -156,7 +122,7 @@ class ConvertOriginToCOCO:
         area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
         return area
 
-    def get_bbox_of_polygon(self, points, image_shape):
+    def get_bbox_of_polygon(self, points, image_size):
         if not isinstance(points, np.ndarray):
             points = np.array(points)
         x_min = np.min(points[:, 0])
@@ -164,7 +130,7 @@ class ConvertOriginToCOCO:
         x_max = np.max(points[:, 0])
         y_max = np.max(points[:, 1])
 
-        img_height, img_width = image_shape[:2]
+        img_height, img_width = image_size
 
         x_min = int(max(0, min(x_min, img_width - 1)))
         y_min = int(max(0, min(y_min, img_height - 1)))
@@ -176,6 +142,148 @@ class ConvertOriginToCOCO:
 
         return [x_min, y_min, w, h]
 
+    def filter_array(self, data, height=cfg.IMAGE_SIZE_h, width=cfg.IMAGE_SIZE_w):
+        array = np.array(data)
+        mask = (array[:, 0] <= height) & (array[:, 1] <= width) & (array >= 0).all(axis=1)
+        return array[mask].tolist()
+
+    def merge_safety_zone_objects_by_id(self, objects, threshold: int = 20):
+        """
+        Merge objects based on their `id` values. Objects are merged if their `id` values are within the threshold.
+
+        Args:
+            objects (list): List of objects containing `id`, `bbox`, and `image_points`.
+            threshold (int): Maximum difference in `id` values to allow merging.
+
+        Returns:
+            list: List of merged objects.
+        """
+        # Sort objects by 'id'
+        objects.sort(key=lambda obj: int(obj['id'][6:]))
+
+        merged_objects = []
+        current_merged_object = None
+
+        for obj in objects:
+            obj_id = int(obj['id'][6:])
+
+            if current_merged_object is None:
+                # Initialize the first object to be merged
+                current_merged_object = obj
+            else:
+                # Calculate the difference in `id` values
+                current_id = int(current_merged_object['id'][6:])
+                if abs(obj_id - current_id) <= threshold:
+                    # Merge the current object with the new object
+                    current_merged_object['bbox'] = [
+                        min(current_merged_object['bbox'][0], obj['bbox'][0]),
+                        min(current_merged_object['bbox'][1], obj['bbox'][1]),
+                        max(current_merged_object['bbox'][0] + current_merged_object['bbox'][2],
+                            obj['bbox'][0] + obj['bbox'][2]) - min(current_merged_object['bbox'][0], obj['bbox'][0]),
+                        max(current_merged_object['bbox'][1] + current_merged_object['bbox'][3],
+                            obj['bbox'][1] + obj['bbox'][3]) - min(current_merged_object['bbox'][1], obj['bbox'][1])
+                    ]
+                    current_merged_object['image_points'] += obj['image_points']
+                else:
+                    # Append the current merged object and start a new one
+                    merged_objects.append(current_merged_object)
+                    current_merged_object = obj
+
+        # Append the last merged object
+        if current_merged_object:
+            merged_objects.append(current_merged_object)
+        if merged_objects:
+            print(merged_objects[0]['image_id'])
+            self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
+
+        return merged_objects
+
+    def merge_safety_zone_objects(self, objects, threshold: int = 10):
+        merged_objects = []
+        used = [False] * len(objects)
+
+        def is_bbox_close(bbox1, bbox2, threshold):
+            x1_min, y1_min, w1, h1 = bbox1
+            x2_min, y2_min, w2, h2 = bbox2
+            x1_max, y1_max = x1_min + w1, y1_min + h1
+            x2_max, y2_max = x2_min + w2, y2_min + h2
+
+            return (
+                    x1_min - threshold <= x2_max and x1_max + threshold >= x2_min and
+                    y1_min - threshold <= y2_max and y1_max + threshold >= y2_min
+            )
+
+        for i, obj1 in enumerate(objects):
+            if used[i]:
+                continue
+            merged_object = obj1
+            merged_bbox = obj1['bbox']
+            merged_points = obj1['image_points']
+            used[i] = True
+
+            for j, obj2 in enumerate(objects):
+                if i != j and not used[j] and is_bbox_close(merged_bbox, obj2['bbox'], threshold):
+                    used[j] = True
+                    merged_bbox = [
+                        min(merged_bbox[0], obj2['bbox'][0]),
+                        min(merged_bbox[1], obj2['bbox'][1]),
+                        max(merged_bbox[0] + merged_bbox[2], obj2['bbox'][0] + obj2['bbox'][2]) - min(merged_bbox[0],
+                                                                                                      obj2['bbox'][0]),
+                        max(merged_bbox[1] + merged_bbox[3], obj2['bbox'][1] + obj2['bbox'][3]) - min(merged_bbox[1],
+                                                                                                      obj2['bbox'][1])
+                    ]
+                    merged_points += obj2['image_points']
+            merged_object['image_points'] = merged_points
+            merged_object['bbox'] = merged_bbox
+            merged_objects.append(merged_object)
+        # if merged_objects:
+            # print(merged_objects[0]['image_id'])
+            # self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
+        return merged_objects
+
+    def visualize_bboxes(self, objects, merged_objects, image_id='', image_size=(768, 768)):
+        """
+        Visualize original and merged bounding boxes.
+
+        Args:
+            objects (list): List of original objects with 'bbox'.
+            merged_objects (list): List of merged objects with 'bbox'.
+            image_size (tuple): Size of the visualization canvas (height, width).
+        """
+        # Create a blank canvas
+        original_image = cv2.imread(os.path.join('/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/image', image_id.replace('.json', '.png')))
+
+        original_canvas = np.zeros((image_size[0], image_size[1], 3), dtype=np.uint8)
+        merged_canvas = original_image.copy()
+        combined_canvas = np.zeros((image_size[0], image_size[1], 3), dtype=np.uint8)
+
+        # Random colors for visualizing individual boxes
+        def random_color():
+            return tuple(random.randint(0, 255) for _ in range(3))
+
+        # Draw original bounding boxes in red
+        for obj in objects:
+            bbox = obj['bbox']
+            x_min, y_min, w, h = bbox
+            x_max, y_max = x_min + w, y_min + h
+            cv2.rectangle(original_canvas, (x_min, y_min), (x_max, y_max), (0, 0, 255), 2)
+
+        # Draw merged bounding boxes in green
+        for obj in merged_objects:
+            bbox = obj['bbox']
+            x_min, y_min, w, h = bbox
+            x_max, y_max = x_min + w, y_min + h
+            cv2.rectangle(merged_canvas, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+
+        # Combine original and merged visualizations
+        combined_canvas = cv2.addWeighted(original_canvas, 0.5, merged_canvas, 0.5, 0)
+
+        # Display the results
+        cv2.imshow("Original Bounding Boxes (Red)", original_canvas)
+        cv2.imshow("Merged Bounding Boxes (Green)", merged_canvas)
+        cv2.imshow("Combined View", combined_canvas)
+        cv2.imshow('image', original_image)
+        cv2.waitKey(0)
     def generate_images_coco_format(self, image_path):
         image_dict = {'license': 1,
                       'file_name': image_path.split('/')[-1],
@@ -195,6 +303,22 @@ class ConvertOriginToCOCO:
         image_dict['id'] = image_path.split('/')[-1].split('.png')[0]
         return image_dict
 
+    def generate_categories_coco_format(self):
+        categories = []
+        for kind_id, kind_name in KindDict.items():
+            type_key = next((key for key, value in TypeDict.items() if value == kind_name), None)
+            if type_key:
+                supercategory = TypeDict_English[TypeDict[type_key]]
+            else:
+                supercategory = 'unknown'
+
+            categories.append({
+                'id': int(kind_id),
+                'name': KindDict_English[kind_name],
+                'supercategory': supercategory
+            })
+        return categories
+
     def load_json_data(self, path):
         with open(path, 'r') as f:
             data = json.load(f)
@@ -213,7 +337,7 @@ class ConvertOriginToCOCO:
 
 if __name__ == '__main__':
     path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
-    save_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_coco_241205'
+    save_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_coco_241209'
     divide_json = path+'/dataset.json'
     converter = ConvertOriginToCOCO(path, save_path, divide_json)
     converter.train_val_divide_process()

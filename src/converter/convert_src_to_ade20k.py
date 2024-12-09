@@ -75,7 +75,7 @@ def generate_semantic_image(label_path: str) -> np.ndarray:
     Returns:
         np.ndarray: Semantic segmentation image.
     """
-    semantic_image = np.zeros((768, 768), dtype=np.uint8)
+    semantic_image = np.ones((768, 768), dtype=np.uint8) # label 1 is ignore
     category_priority = {
         key: idx for idx, key in enumerate(cfg_converter.sorted_ADE20K_CATEGORIES.keys())
     }
@@ -91,13 +91,13 @@ def generate_semantic_image(label_path: str) -> np.ndarray:
     )
     for road_object in road_objects:
         if road_object['category'] in category_to_label_id:
-            label_id = category_to_label_id[road_object['category']] + 1
+            label_id = category_to_label_id[road_object['category']] + 2 # label 1 is ignore
             geometry_type = road_object['geometry_type']
             image_points = road_object['image_points']
 
             # Convert LINE_STRING to POLYGON if necessary
             if geometry_type in ['LINE_STRING', 'MULTILINE_STRING']:
-                image_points = expand_line_to_polygon(image_points, buffer_size=2.5)
+                image_points = expand_line_to_polygon(image_points, buffer_size=1.5)
             else:
                 continue
 

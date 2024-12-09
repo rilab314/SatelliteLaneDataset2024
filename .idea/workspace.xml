@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1072e41e-ad08-47d8-99a8-d321f20a6222" name="Changes" comment="" />
+    <list default="true" id="1072e41e-ad08-47d8-99a8-d321f20a6222" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/src/config/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/converter/convert_origin_to_coco.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/converter/convert_origin_to_coco.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/converter/convert_src_to_ade20k.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/converter/convert_src_to_ade20k.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -42,7 +46,7 @@
     "Python.convert_src_to_ade20k.executor": "Run",
     "Python.convert_src_to_detectron.executor": "Run",
     "Python.crop_and_lonlat2webmer_filename.executor": "Run",
-    "Python.data_check_copy.executor": "Run",
+    "Python.data_check_copy.executor": "Debug",
     "Python.dataset_summary_generator.executor": "Run",
     "Python.divide_train_val.executor": "Run",
     "Python.draw_lane.executor": "Run",
@@ -125,7 +129,7 @@
       <recent name="$PROJECT_DIR$/matcher/data_prepare" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.data_check_copy">
+  <component name="RunManager" selected="Python.convert_origin_to_coco">
     <configuration name="convert_origin_to_coco" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="SatelliteLaneDataset2024" />
       <option name="ENV_FILES" value="" />
@@ -172,29 +176,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="convert_src_to_ade20k" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="SatelliteLaneDataset2024" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/data/converter" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/data/converter/convert_src_to_ade20k.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="data_check_copy" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="SatelliteLaneDataset2024" />
       <option name="ENV_FILES" value="" />
@@ -210,6 +191,29 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/config/data_check_copy.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="dataset_summary_generator" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="SatelliteLaneDataset2024" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/figure" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/figure/dataset_summary_generator.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -243,11 +247,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.convert_origin_to_coco" />
         <item itemvalue="Python.data_check_copy" />
         <item itemvalue="Python.convert_src_to_ade20k (1)" />
-        <item itemvalue="Python.convert_origin_to_coco" />
+        <item itemvalue="Python.dataset_summary_generator" />
         <item itemvalue="Python.label_check_copy" />
-        <item itemvalue="Python.convert_src_to_ade20k" />
       </list>
     </recent_temporary>
   </component>
@@ -297,6 +301,7 @@
       <workItem from="1733300634317" duration="65000" />
       <workItem from="1733303700363" duration="28696000" />
       <workItem from="1733506638670" duration="8312000" />
+      <workItem from="1733705898890" duration="14817000" />
     </task>
     <servers />
   </component>
@@ -448,18 +453,28 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/config/data_check_copy.py</url>
-          <line>19</line>
+          <line>23</line>
           <option name="timeStamp" value="401" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/config/data_check_copy.py</url>
-          <line>15</line>
-          <option name="timeStamp" value="402" />
+          <url>file://$PROJECT_DIR$/src/converter/convert_src_to_ade20k.py</url>
+          <line>101</line>
+          <option name="timeStamp" value="405" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/converter/convert_src_to_ade20k.py</url>
-          <line>91</line>
-          <option name="timeStamp" value="404" />
+          <url>file://$PROJECT_DIR$/src/config/data_check_copy.py</url>
+          <line>22</line>
+          <option name="timeStamp" value="420" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/converter/convert_origin_to_coco.py</url>
+          <line>284</line>
+          <option name="timeStamp" value="432" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/converter/convert_origin_to_coco.py</url>
+          <line>201</line>
+          <option name="timeStamp" value="439" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -470,21 +485,21 @@
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$convert_origin_to_coco.coverage" NAME="convert_origin_to_coco Coverage Results" MODIFIED="1733381264606" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/converter" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_2nd_copy.coverage" NAME="road_objects_2nd_copy Coverage Results" MODIFIED="1729291510381" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
+    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$convert_origin_to_coco.coverage" NAME="convert_origin_to_coco Coverage Results" MODIFIED="1733722880907" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/converter" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_copy1.coverage" NAME="road_objects_copy1 Coverage Results" MODIFIED="1731149580997" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
-    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_copy4.coverage" NAME="road_objects_copy4 Coverage Results" MODIFIED="1731074382034" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$add_image_id.coverage" NAME="add_image_id Coverage Results" MODIFIED="1729176717990" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher/label_modify" />
+    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_copy4.coverage" NAME="road_objects_copy4 Coverage Results" MODIFIED="1731074382034" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$lane_surface_merge_rough_code.coverage" NAME="lane_surface_merge_rough_code Coverage Results" MODIFIED="1728227791808" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/old" />
-    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$draw_road_objects.coverage" NAME="road_data_image_alignment Coverage Results" MODIFIED="1729671859352" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$lonlat_clip_list_generator.coverage" NAME="lonlat_clip_list_generator Coverage Results" MODIFIED="1731165614800" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher/lonlat_clip" />
-    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$dataset_summary_generator.coverage" NAME="dataset_summary_generator Coverage Results" MODIFIED="1732468943970" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/figure" />
+    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$draw_road_objects.coverage" NAME="road_data_image_alignment Coverage Results" MODIFIED="1729671859352" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
+    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$dataset_summary_generator.coverage" NAME="dataset_summary_generator Coverage Results" MODIFIED="1733706156981" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/figure" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$figure1.coverage" NAME="figure1 Coverage Results" MODIFIED="1732464899427" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/figure" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$generate_link_file_json.coverage" NAME="generate_link_file_json Coverage Results" MODIFIED="1729807588030" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher/data_prepare" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$extract_category_examples.coverage" NAME="extract_category_examples Coverage Results" MODIFIED="1732467360564" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/figure" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$divide_train_val.coverage" NAME="divide_train_val Coverage Results" MODIFIED="1732025465418" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data/check" />
-    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects.coverage" NAME="road_objects Coverage Results" MODIFIED="1731417002007" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$image_label_screening.coverage" NAME="image_label_screening Coverage Results" MODIFIED="1732213243095" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data/check" />
+    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects.coverage" NAME="road_objects Coverage Results" MODIFIED="1731417002007" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$link_file_json_generator.coverage" NAME="link_file_json_generator Coverage Results" MODIFIED="1728226087126" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$lonlat2web.coverage" NAME="lonlat2web Coverage Results" MODIFIED="1732103651816" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/figure" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_copy2.coverage" NAME="road_objects_copy2 Coverage Results" MODIFIED="1731149588980" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
@@ -506,7 +521,7 @@
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$figure2.coverage" NAME="figure2 Coverage Results" MODIFIED="1732475514528" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/figure" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$crop_and_lonlat2webmer_filename.coverage" NAME="crop_and_lonlat2webmer_filename Coverage Results" MODIFIED="1731072903936" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher/data_prepare" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$generate_segmentation_labels.coverage" NAME="generate_segmentation_labels Coverage Results" MODIFIED="1732362448453" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
-    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$data_check_copy.coverage" NAME="data_check_copy Coverage Results" MODIFIED="1733512332356" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/config" />
+    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$data_check_copy.coverage" NAME="data_check_copy Coverage Results" MODIFIED="1733718303203" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/config" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$rename_copy.coverage" NAME="rename_copy Coverage Results" MODIFIED="1733314975213" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data/check" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$lonlat_to_webmer_filename.coverage" NAME="lonlat_to_webmer_filename Coverage Results" MODIFIED="1728992317615" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$shape_to_json_main_copy.coverage" NAME="shape_to_json_main_copy Coverage Results" MODIFIED="1731430080101" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
@@ -529,7 +544,7 @@
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$index_check.coverage" NAME="index_check Coverage Results" MODIFIED="1728909997888" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher/lonlat_clip" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$name_sort.coverage" NAME="name_sort Coverage Results" MODIFIED="1731539163290" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data/check" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$good_image_label.coverage" NAME="good_image_label Coverage Results" MODIFIED="1732021717320" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data/check" />
-    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$convert_src_to_ade20k__1_.coverage" NAME="convert_src_to_ade20k (1) Coverage Results" MODIFIED="1733512327001" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/converter" />
+    <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$convert_src_to_ade20k__1_.coverage" NAME="convert_src_to_ade20k (1) Coverage Results" MODIFIED="1733712487237" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/converter" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$road_objects_copy5.coverage" NAME="road_objects_copy5 Coverage Results" MODIFIED="1731074392406" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$main_copy.coverage" NAME="main_copy Coverage Results" MODIFIED="1731430748690" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
     <SUITE FILE_PATH="coverage/SatelliteLaneDataset2024$generate_total_links_json.coverage" NAME="generate_total_links_json Coverage Results" MODIFIED="1731072450292" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/matcher/data_prepare" />
