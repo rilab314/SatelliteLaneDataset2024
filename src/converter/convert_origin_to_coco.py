@@ -38,7 +38,7 @@ class ConvertOriginToCOCO:
 
         self.convert_annotation(train_image_list, train_label_list, 'instances_train2017.json')
         self.convert_annotation(val_image_list, val_label_list, 'instances_val2017.json')
-        # self.copy_divide_image(train_image_list, val_image_list, test_image_list)
+        self.copy_divide_image(train_image_list, val_image_list, test_image_list)
 
     def convert_annotation(self, image_list, label_list, save_filename):
         coco_format = {'info': {},
