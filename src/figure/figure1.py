@@ -3,6 +3,7 @@ import json
 import cv2
 import numpy as np
 from glob import glob
+from tqdm import tqdm
 
 from src.figure.category_colormap import KindDictColors, KindDictColors_pastel
 
@@ -18,8 +19,15 @@ def draw_lane_on_image(image_path, label_path, output_path, scale=4, thickness=2
     with open(label_path, 'r') as f:
         label_data = json.load(f)
 
+    #
+    safety_zone_on = False
+    #
     for obj in label_data:
-        if obj['class'] == 'RoadObject':
+        if obj['class'] == 'RoadObject' and obj['category_id'] == '531':
+            #
+            if obj['category_id'] == '531':
+                safety_zone_on = True
+            #
             color = KindDictColors[obj['category_id']]
             # color = (color[2], color[1], color[0])
             scaled_points = [(int(x * scale), int(y * scale)) for x, y in obj['image_points']]
@@ -29,7 +37,10 @@ def draw_lane_on_image(image_path, label_path, output_path, scale=4, thickness=2
                 draw_points(high_res_image, scaled_points, color, radius, step=2)
             elif obj['geometry_type'] == 'POLYGON':
                 draw_polygon(high_res_image, scaled_points, color, int(thickness/1.5))
-
+    #
+    if not safety_zone_on:
+        return
+    #
     final_image = cv2.resize(high_res_image, (width*2, height*2), interpolation=cv2.INTER_AREA)
 
     os.makedirs(output_path, exist_ok=True)
@@ -61,21 +72,25 @@ def draw_points(image, points, color=(0, 0, 255), radius=3, step=2):
 
 def process_all_images(image_folder, label_folder, output_folder, scale=4, thickness=1, radius=2.):
     image_files = glob(os.path.join(image_folder, '*.png'))
+    dataset_json = json.load(open(
+        '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/dataset.json',
+        'r'))
 
-    for image_file in image_files:
+    for image_file in tqdm(image_files):
         base_name = os.path.splitext(os.path.basename(image_file))[0]
+        if base_name not in dataset_json['validation']:
+            continue
         label_file = os.path.join(label_folder, f"{base_name}.json")
 
         if not os.path.exists(label_file):
             print(f"Label not found for image: {image_file}")
             continue
-
         draw_lane_on_image(image_file, label_file, output_folder, scale, thickness * scale, int(radius * scale))
 
 
 if __name__ == '__main__':
-    image_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/figure/image'
-    label_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/figure/label'
-    output_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/figure/figure1/output'
+    image_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/image'
+    label_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/label'
+    output_folder = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/figure/satellite_good_matching_241125_safety_zone'
 
-    process_all_images(image_folder, label_folder, output_folder, scale=100, thickness=1, radius=2.4)
+    process_all_images(image_folder, label_folder, output_folder, scale=1, thickness=1, radius=2.4)

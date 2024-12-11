@@ -68,8 +68,8 @@ def process_folders(base_path, folders, coordinates):
 
 if __name__ == "__main__":
     # Define base path and folders
-    base_path = "/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/figure/predict"  # Adjust if script is not in the same directory
-    folders = ["deformable_detr", "dino", "yolox-l"]
+    base_path = "/home/falcon/Downloads/241210_detection"  # Adjust if script is not in the same directory
+    folders = ["deformable_detr", "dino", "yolox", "grounding_dino"]
 
     # Coordinate list
     coordinates = [
@@ -79,7 +79,17 @@ if __name__ == "__main__":
         "126.7171567,37.4380454",
         "127.0463,37.574647999999996",
         "127.05918000000001,37.498248",
-        "127.07114,37.541031999999994"
+        "127.07114,37.541031999999994",
+        "127.0647,37.594511999999995",  # crossroads
+
+        # safety_zone
+        "126.7226921,37.5757113",
+        "126.7282274,37.4018639",
+        "127.05642,37.551728",
+        "126.7226921,37.5165856",
+        "127.05826,37.475328",
+        "126.721585,37.5165856"
+
     ]
 
     # Process the folders
