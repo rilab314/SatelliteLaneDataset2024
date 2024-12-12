@@ -36,7 +36,7 @@ def calculate_statistics(label_folder: str) -> Tuple[pd.DataFrame, Dict[str, int
             data = json.load(f)
             image_instances = 0
             for obj in data:
-                if obj['class'] == 'RoadObject' and obj['category'] != 'None' and obj['type'] != 'undefined' and obj['category'] != 'others':
+                if obj['class'] == 'RoadObject' and obj['category'] != 'None' and obj['type'] != 'undefined':
                     total_instances += 1
                     total_points += len(obj['image_points'])
                     class_counts[obj['category']] += 1
@@ -134,7 +134,7 @@ def generate_dataset_summary(label_folder: str, output_dir: str, font_size: int 
 
     # Plot class distribution
     plot_sorted_bar(class_counts, "Category Names", "# of Instances", "Instances per Category",
-                    os.path.join(output_dir, "category_distribution.png"), figure_size=(17, 7), font_size=font_size+1, add_font_size=font_size+1)
+                    os.path.join(output_dir, "category_distribution.png"), figure_size=(17, 8.5), font_size=font_size+1, add_font_size=font_size+1)
 
     # Plot type distribution
     plot_sorted_bar(type_counts, "Type Names", "# of Instances", "Instances per Type",
@@ -147,9 +147,10 @@ def generate_dataset_summary(label_folder: str, output_dir: str, font_size: int 
 
 if __name__ == "__main__":
     label_folder_path = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/label"
-    output_dir = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/figure/summary"
+    output_dir = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/figure/summary_241212"
 
     # Font size parameter
     font_size = 25
 
     generate_dataset_summary(label_folder_path, output_dir, font_size=font_size)
+

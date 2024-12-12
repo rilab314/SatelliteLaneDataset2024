@@ -45,6 +45,7 @@ def crop_and_save_images(image_paths, output_folder, gt_folder):
             # Save right half to the specific output folder
             output_path = os.path.join(output_folder, file_name)
             right_half.save(output_path)
+            # img.save(output_path)
 
 
 def process_folders(base_path, folders, coordinates):
@@ -66,7 +67,7 @@ def process_folders(base_path, folders, coordinates):
         crop_and_save_images(image_paths, output_folder, gt_folder)
 
 
-if __name__ == "__main__":
+def detection_predicted_images():
     # Define base path and folders
     base_path = "/home/falcon/Downloads/241210_detection"  # Adjust if script is not in the same directory
     folders = ["deformable_detr", "dino", "yolox", "grounding_dino"]
@@ -96,4 +97,37 @@ if __name__ == "__main__":
     process_folders(base_path, folders, coordinates)
     print("Processing completed!")
 
+def segmentation_predicted_images():
+    # Define base path and folders
+    base_path = "/home/humpback/Downloads/241211_segmentation"  # Adjust if script is not in the same directory
+    folders = ["mask2former", "segformer", "upernet", "pspnet"]
+
+    # Coordinate list
+    coordinates = [
+        "test_126.721585,37.5165856.png_131",
+        "test_126.721585,37.4865814.png_123",
+        "test_126.721585,37.5757113.png_137",
+        "test_126.7160496,37.4027464.png_3",
+        "test_126.7171567,37.4389278.png_33",
+        "test_126.7293345,37.4909938.png_311",
+        "test_126.7304416,37.4053938.png_335",
+        "test_126.7304416,37.4389278.png_339",
+        "test_126.7315486,37.4398103.png_367",
+        "test_127.0463,37.537212.png_418",
+        "test_127.0647,37.505123999999995.png_944",
+        "test_127.04722000000001,37.576176.png_443",
+        "test_127.05550000000001,37.566244.png_668",
+        "test_127.05366000000001,37.495956.png_609",
+        "test_127.05734000000001,37.57694.png_744"
+
+    ]
+
+    # Process the folders
+    process_folders(base_path, folders, coordinates)
+    print("Processing completed!")
+
+
+if __name__ == '__main__':
+    # detection_predicted_images()
+    segmentation_predicted_images()
 
