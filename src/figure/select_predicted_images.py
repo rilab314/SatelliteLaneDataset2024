@@ -89,7 +89,10 @@ def detection_predicted_images():
         "127.05642,37.551728",
         "126.7226921,37.5165856",
         "127.05826,37.475328",
-        "126.721585,37.5165856"
+        "126.721585,37.5165856",
+
+        "127.05918000000001,37.476091999999994",
+        "127.07114,37.561659999999996",
 
     ]
 
@@ -128,6 +131,6 @@ def segmentation_predicted_images():
 
 
 if __name__ == '__main__':
-    # detection_predicted_images()
-    segmentation_predicted_images()
+    detection_predicted_images()
+    # segmentation_predicted_images()
 
