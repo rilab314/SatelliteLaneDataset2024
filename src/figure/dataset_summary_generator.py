@@ -147,7 +147,7 @@ def generate_dataset_summary(label_folder: str, output_dir: str, font_size: int 
 
 if __name__ == "__main__":
     label_folder_path = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/label"
-    output_dir = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/figure/summary_241212"
+    output_dir = "/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/figure/summary_241213"
 
     # Font size parameter
     font_size = 25

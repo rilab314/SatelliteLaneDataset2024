@@ -8,9 +8,9 @@ from tqdm import tqdm
 
 import src.config.config as cfg
 import src.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
+import src.config.config_converter as cfg_converter
 from src.utils.json_file_io import save_json_with_custom_indent
 from src.config.ID_name_mapping import *
-
 
 
 class ConvertOriginToCOCO:
@@ -56,7 +56,7 @@ class ConvertOriginToCOCO:
             origin2coco_images = self.generate_images_coco_format(image_path)
             coco_format['images'].append(origin2coco_images)
 
-        coco_format['info'] = {'contributor': '', 'date_created': '2024/11/14', 'description': '', 'url': '', 'version': '1.0', 'year': 2024}
+        coco_format['info'] = {'contributor': '', 'date_created': '2024/12/13', 'description': '', 'url': '', 'version': '1.0', 'year': 2024}
         coco_format['categories'] = self.generate_categories_coco_format()
         save_path = os.path.join(self.save_path, 'annotations', save_filename)
         save_json_with_custom_indent(coco_format, save_path)
@@ -68,24 +68,9 @@ class ConvertOriginToCOCO:
             if data['class'] == 'MetaData':
                 continue
             #
-            if data['category_id'] in ['530'] or data['type_id'] in ['1', '5']:
+            if data['category_id'] in cfg_converter.COCO_CATEGORIES.keys():
                 annotation_dict = self.gen_annotation_dict(data, image_id)
                 annotations.append(annotation_dict)
-            elif data['category_id'] == '531': # safety_zone
-                if 'bbox' not in data:
-                    data['image_points'] = self.filter_array(data['image_points'])
-                    if not data['image_points']:
-                        continue
-                    data['bbox'] = self.get_bbox_of_polygon(data['image_points'], [cfg.IMAGE_SIZE_h, cfg.IMAGE_SIZE_w])
-                safety_zone_objects.append(data)
-
-        merged_safety_zones = self.merge_safety_zone_objects_line(safety_zone_objects, threshold=3)
-        merged_safety_zones = self.merge_safety_zone_objects(merged_safety_zones, threshold=3)
-
-        for merged_object in merged_safety_zones:
-            annotation_dict = self.gen_annotation_dict(merged_object, image_id)
-            annotations.append(annotation_dict)
-            #
         return annotations
 
     def gen_annotation_dict(self, data, image_id):
@@ -147,206 +132,6 @@ class ConvertOriginToCOCO:
         mask = (array[:, 0] <= height) & (array[:, 1] <= width) & (array >= 0).all(axis=1)
         return array[mask].tolist()
 
-    def merge_safety_zone_objects_by_id(self, objects, threshold: int = 20):
-        """
-        Merge objects based on their `id` values. Objects are merged if their `id` values are within the threshold.
-
-        Args:
-            objects (list): List of objects containing `id`, `bbox`, and `image_points`.
-            threshold (int): Maximum difference in `id` values to allow merging.
-
-        Returns:
-            list: List of merged objects.
-        """
-        # Sort objects by 'id'
-        objects.sort(key=lambda obj: int(obj['id'][6:]))
-
-        merged_objects = []
-        current_merged_object = None
-
-        for obj in objects:
-            obj_id = int(obj['id'][6:])
-
-            if current_merged_object is None:
-                # Initialize the first object to be merged
-                current_merged_object = obj
-            else:
-                # Calculate the difference in `id` values
-                current_id = int(current_merged_object['id'][6:])
-                if abs(obj_id - current_id) <= threshold:
-                    # Merge the current object with the new object
-                    current_merged_object['bbox'] = [
-                        min(current_merged_object['bbox'][0], obj['bbox'][0]),
-                        min(current_merged_object['bbox'][1], obj['bbox'][1]),
-                        max(current_merged_object['bbox'][0] + current_merged_object['bbox'][2],
-                            obj['bbox'][0] + obj['bbox'][2]) - min(current_merged_object['bbox'][0], obj['bbox'][0]),
-                        max(current_merged_object['bbox'][1] + current_merged_object['bbox'][3],
-                            obj['bbox'][1] + obj['bbox'][3]) - min(current_merged_object['bbox'][1], obj['bbox'][1])
-                    ]
-                    current_merged_object['image_points'] += obj['image_points']
-                else:
-                    # Append the current merged object and start a new one
-                    merged_objects.append(current_merged_object)
-                    current_merged_object = obj
-
-        # Append the last merged object
-        if current_merged_object:
-            merged_objects.append(current_merged_object)
-        if merged_objects:
-            print(merged_objects[0]['image_id'])
-            self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
-
-        return merged_objects
-    def merge_safety_zone_objects_line(self, objects, threshold: int = 10):
-        """
-        Merge safety zone objects based on the proximity of their start or end points.
-
-        Args:
-            objects (list): List of objects containing 'image_points'.
-            threshold (int): Maximum distance to consider two points as close.
-
-        Returns:
-            list: Merged safety zone objects.
-        """
-        merged_objects = []
-        used = [False] * len(objects)
-
-        def are_points_close(points1, points2, threshold):
-            """
-            Check if the start or end points of two point lists are close.
-
-            Args:
-                points1 (list): First set of points.
-                points2 (list): Second set of points.
-                threshold (int): Distance threshold.
-
-            Returns:
-                bool: True if points are close, False otherwise.
-            """
-            start1, end1 = points1[0], points1[-1]
-            start2, end2 = points2[0], points2[-1]
-
-            def distance(p1, p2):
-                return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
-
-            return (
-                    distance(start1, start2) <= threshold or
-                    distance(start1, end2) <= threshold or
-                    distance(end1, start2) <= threshold or
-                    distance(end1, end2) <= threshold
-            )
-
-        for i, obj1 in enumerate(objects):
-            if used[i]:
-                continue
-
-            merged_object = obj1.copy()
-            merged_points = obj1['image_points'][:]
-            used[i] = True
-
-            for j, obj2 in enumerate(objects):
-                if i != j and not used[j] and are_points_close(merged_points, obj2['image_points'], threshold):
-                    used[j] = True
-                    merged_points += obj2['image_points']
-
-            # Sort merged points to maintain continuity
-            merged_points = sorted(merged_points, key=lambda p: (p[0], p[1]))
-            merged_object['image_points'] = merged_points
-            merged_object['bbox'] = self.get_bbox_of_polygon(merged_points, [cfg.IMAGE_SIZE_h, cfg.IMAGE_SIZE_w])
-            merged_objects.append(merged_object)
-        # if merged_objects:
-        #     print(merged_objects[0]['image_id'])
-        #     self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
-        return merged_objects
-
-    def merge_safety_zone_objects(self, objects, threshold: int = 10):
-        merged_objects = []
-        used = [False] * len(objects)
-
-        def is_bbox_close(bbox1, bbox2, threshold):
-            x1_min, y1_min, w1, h1 = bbox1
-            x2_min, y2_min, w2, h2 = bbox2
-            x1_max, y1_max = x1_min + w1, y1_min + h1
-            x2_max, y2_max = x2_min + w2, y2_min + h2
-
-            return (
-                    x1_min - threshold <= x2_max and x1_max + threshold >= x2_min and
-                    y1_min - threshold <= y2_max and y1_max + threshold >= y2_min
-            )
-
-        for i, obj1 in enumerate(objects):
-            if used[i]:
-                continue
-            merged_object = obj1
-            merged_bbox = obj1['bbox']
-            merged_points = obj1['image_points']
-            used[i] = True
-
-            for j, obj2 in enumerate(objects):
-                if i != j and not used[j] and is_bbox_close(merged_bbox, obj2['bbox'], threshold):
-                    used[j] = True
-                    merged_bbox = [
-                        min(merged_bbox[0], obj2['bbox'][0]),
-                        min(merged_bbox[1], obj2['bbox'][1]),
-                        max(merged_bbox[0] + merged_bbox[2], obj2['bbox'][0] + obj2['bbox'][2]) - min(merged_bbox[0],
-                                                                                                      obj2['bbox'][0]),
-                        max(merged_bbox[1] + merged_bbox[3], obj2['bbox'][1] + obj2['bbox'][3]) - min(merged_bbox[1],
-                                                                                                      obj2['bbox'][1])
-                    ]
-                    merged_points += obj2['image_points']
-            merged_object['image_points'] = merged_points
-            merged_object['bbox'] = merged_bbox
-            merged_objects.append(merged_object)
-        # if merged_objects:
-        #     print(merged_objects[0]['image_id'])
-        #     self.visualize_bboxes(objects, merged_objects, merged_objects[0]['image_id'])
-        return merged_objects
-
-
-
-    def visualize_bboxes(self, objects, merged_objects, image_id='', image_size=(768, 768)):
-        """
-        Visualize original and merged bounding boxes.
-
-        Args:
-            objects (list): List of original objects with 'bbox'.
-            merged_objects (list): List of merged objects with 'bbox'.
-            image_size (tuple): Size of the visualization canvas (height, width).
-        """
-        # Create a blank canvas
-        original_image = cv2.imread(os.path.join('/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125/image', image_id.replace('.json', '.png')))
-
-        original_canvas = np.zeros((image_size[0], image_size[1], 3), dtype=np.uint8)
-        merged_canvas = original_image.copy()
-        combined_canvas = np.zeros((image_size[0], image_size[1], 3), dtype=np.uint8)
-
-        # Random colors for visualizing individual boxes
-        def random_color():
-            return tuple(random.randint(0, 255) for _ in range(3))
-
-        # Draw original bounding boxes in red
-        for obj in objects:
-            bbox = obj['bbox']
-            x_min, y_min, w, h = bbox
-            x_max, y_max = x_min + w, y_min + h
-            cv2.rectangle(original_canvas, (x_min, y_min), (x_max, y_max), (0, 0, 255), 2)
-
-        # Draw merged bounding boxes in green
-        for obj in merged_objects:
-            bbox = obj['bbox']
-            x_min, y_min, w, h = bbox
-            x_max, y_max = x_min + w, y_min + h
-            cv2.rectangle(merged_canvas, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
-
-        # Combine original and merged visualizations
-        combined_canvas = cv2.addWeighted(original_canvas, 0.5, merged_canvas, 0.5, 0)
-
-        # Display the results
-        cv2.imshow("Original Bounding Boxes (Red)", original_canvas)
-        cv2.imshow("Merged Bounding Boxes (Green)", merged_canvas)
-        cv2.imshow("Combined View", combined_canvas)
-        cv2.imshow('image', original_image)
-        cv2.waitKey(0)
     def generate_images_coco_format(self, image_path):
         image_dict = {'license': 1,
                       'file_name': image_path.split('/')[-1],
@@ -368,7 +153,7 @@ class ConvertOriginToCOCO:
 
     def generate_categories_coco_format(self):
         categories = []
-        for kind_id, kind_name in KindDict.items():
+        for kind_id, kind_name in cfg_converter.COCO_CATEGORIES.items():
             type_key = next((key for key, value in TypeDict.items() if value == kind_name), None)
             if type_key:
                 supercategory = TypeDict_English[TypeDict[type_key]]
@@ -377,7 +162,7 @@ class ConvertOriginToCOCO:
 
             categories.append({
                 'id': int(kind_id),
-                'name': KindDict_English[kind_name],
+                'name': kind_name,
                 'supercategory': supercategory
             })
         return categories
@@ -399,8 +184,9 @@ class ConvertOriginToCOCO:
             shutil.copy(image_path, moved_image_path)
 
 if __name__ == '__main__':
-    path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
-    save_path = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_coco_241209'
+    path = cfg.DATASET_PATH
+    save_path = cfg.CUSTOM_COCO_PATH
+
     divide_json = path+'/dataset.json'
     converter = ConvertOriginToCOCO(path, save_path, divide_json)
     converter.train_val_divide_process()
