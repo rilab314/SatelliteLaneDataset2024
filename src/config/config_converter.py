@@ -27,7 +27,6 @@ sorted_ADE20K_CATEGORIES = {
 }
 
 COCO_CATEGORIES = {
-    '524': 'no_stopping_zone',
     '5321': 'crosswalk',
     '533': 'raised_crosswalk',
     '534': 'bicycle_crosswalk',
