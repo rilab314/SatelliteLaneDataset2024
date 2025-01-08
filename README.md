@@ -8,9 +8,9 @@ To train and evaluate the models in this repository, you need to download the re
 
 | Dataset Name       | Description                                   | Download Link                                                                 | File Format | Size    |
 |--------------------|-----------------------------------------------|-------------------------------------------------------------------------------|-------------|---------|
-| SEED-MAP          | Brief description of Dataset 1               | [Download here]([https://1drv.ms/u/s!ApIuZ8oQlFPzkd0Gp6jZu6r0T_2_Pg?e=OPz8rq](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0IVO8x4OeIsFGSKQ?e=VP0KdX))                                | `.zip`      | 14.1 GB   |
-| COCO form          | Brief description of Dataset 2               | [Download here]([https://example.com/dataset2](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0HS_xT2T0GtYQJ0w?e=miEozW))                                | `.zip`   | 13.6 GB   |
-| ADE20K form          | Brief description of Dataset 3               | [Download here]([https://example.com/dataset3](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0Gp6jZu6r0T_2_Pg?e=OPz8rq))                                | `.zip`      | 10.9 MB   |
+| SEED-MAP          | Original dataset consisting of image-label pairs | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0IVO8x4OeIsFGSKQ?e=VP0KdX)                                | `.zip`      | 14.1 GB   |
+| COCO form          | SEED-MAP converted to COCO format | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0HS_xT2T0GtYQJ0w?e=miEozW)                                | `.zip`   | 13.6 GB   |
+| ADE20K form          | SEED-MAP converted to ADE20K format | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0Gp6jZu6r0T_2_Pg?e=OPz8rq)                                | `.zip`      | 10.9 GB   |
 
 ### Directory Structure
 
