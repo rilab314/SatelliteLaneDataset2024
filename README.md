@@ -1,7 +1,10 @@
-# SatelliteLaneDataset2024
+# SEED-MAP data framework
+## Description
+This repository contains a collection of scripts and tools designed to facilitate the generation, transformation, and utilization of the SEED-MAP dataset.
+
+
 
 ## Dataset Download
-
 To train and evaluate the models in this repository, you need to download the required datasets. Follow the instructions below to download and organize the datasets.
 
 ### Available Datasets
@@ -31,5 +34,11 @@ datasets
     └── images
         ├── training
         └── validation
+```
+
+## Usage Guide
+Comprehensive usage instructions and sample scripts are currently under preparation and will be made available in a future update.
 
 
+## Sample Image Data
+Sample image data for testing and demonstration purposes will be included in a subsequent release.
