@@ -40,6 +40,13 @@ datasets
 It will be updated soon.
 
 ---
+## Sample images by category and type
+![all categories](https://github.com/user-attachments/assets/e337833e-c0c2-4368-bed3-9e320e8eaabf)
+
+
+
+
+
 ## Inference Sample Images
 ### Object Detection
 ![127 07206000000001,37 616668](https://github.com/user-attachments/assets/b3bc484d-3b39-4150-a8cd-da358b67801f)
