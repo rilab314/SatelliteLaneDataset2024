@@ -35,10 +35,81 @@ datasets
         ├── training
         └── validation
 ```
-
 ## Usage Guide
-It will be updated soon.
 
+### 1. Prepare the Dataset
+Download the HD map dataset from the National Geographic Information Institute (NGII).  
+[Link to NGII HD Map Data](https://map.ngii.go.kr/ms/pblictn/preciseRoadMap.do)
+
+#### 1.1. Dataset Structure
+Organize the downloaded dataset into a structured format.  
+For example:
+```plaintext
+NGII_HD_Map
+├── (B110)_Precision_Road_Map_Seoul_Northern_Ganseon_Road
+│   └── SEC001_Hawolgok_Junction_To_Wangjagung_Village_Entrance
+├── (B110)_Precision_Road_Map_Seoul_Junggu
+│   ├── SEC001_Manrijae_Road_To_Cheongpa_Road
+│   └── . . .
+├── . . .
+└── (B110)_Precision_Road_Map_Seoul_Route_94(Gangnam_Circulation_Road)
+    └── SEC001_Geumcheon_Tollgate_To_Yangjae_IC
+```
+
+
+### 2. Convert HD Map Data to JSON
+Use the script shape_to_json_main.py to convert the required shapefiles into JSON format for easier data manipulation.
+
+```bash
+python src/shape_to_json_main.py
+```
+
+#### Purpose:
+Convert HD map shapefile data into JSON format for improved accessibility and ease of transformation.
+
+
+### 3. Generate Coordinate Lists for Seoul and Incheon
+Run the script generate_coord_list.py to create a list of coordinates within the Seoul and Incheon regions.
+
+```bash
+python src/generate_coord_list.py
+```
+#### Purpose:
+Identify coordinates in the target areas for further processing.
+
+
+### 4. Generate Lane and Road Marking Labels
+Use the JSON-based HD map data and coordinate list to generate lane and road marking labels for the specified coordinate regions by running generate_labels.py.
+
+```bash
+python src/generate_labels.py
+```
+#### Purpose:
+Extract labels for lanes and road markings based on the specific coordinate areas.
+
+
+### 5. Align Labels with Images
+Run build_dataset.py to align the generated labels with corresponding images, producing aligned labels for training.
+
+```bash
+python src/build_dataset.py
+```
+#### Purpose:
+Create a training-ready dataset by aligning road marking labels with their respective images.
+
+### 6. Convert to COCO Format
+Run the following command to convert the dataset to COCO format:
+
+```bash
+python src/converter/convert_src_to_coco.py
+```
+
+### 7. Convert to ADE20K Format
+Run the following command to convert the dataset to ADE20K format:
+
+```bash
+python src/converter/convert_src_to_ade20k.py
+```
 ---
 ## Sample images by category and type
 ![all categories](https://github.com/user-attachments/assets/e337833e-c0c2-4368-bed3-9e320e8eaabf)
