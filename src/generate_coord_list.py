@@ -12,7 +12,7 @@ from src.dto import GeometryObject
 
 def generate_coord_list():
     reader = JsonFileReader(cfg.JSON_PATH)
-    # reader = ShapeFileReader(cfg.SHAPE_PATH)  # 이걸로도 똑같이 할 수 있게
+    # reader = ShapeFileReader(cfg.SHAPE_PATH)  # this can do the same thing
     json_list = reader.list_files()
     region_configs = [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG]
     coordinates = []
