@@ -17,15 +17,17 @@ def generate_coord_list():
     region_configs = [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG]
     coordinates = []
     for region_config in region_configs:
-        map_cols = int((region_config['LATITUDE_RANGE'][1] - region_config['LATITUDE_RANGE'][0]) // region_config['LATITUDE_STRIDE'] + 1)
-        map_rows = int((region_config['LONGITUDE_RANGE'][1] - region_config['LONGITUDE_RANGE'][0]) // region_config['LONGITUDE_STRIDE'] + 1)
+        map_cols = int((region_config['LATITUDE_RANGE'][1] - region_config['LATITUDE_RANGE'][0]) // region_config[
+            'LATITUDE_STRIDE'] + 1)
+        map_rows = int((region_config['LONGITUDE_RANGE'][1] - region_config['LONGITUDE_RANGE'][0]) // region_config[
+            'LONGITUDE_STRIDE'] + 1)
         touch_map = np.zeros((map_rows, map_cols), dtype=np.int32)
         for file_path in tqdm(json_list, desc='Generating coordinate list'):
             geometries = reader.read(file_path)
             for geometry in geometries:
                 update_touch_map(touch_map, geometry, region_config)
         coordinates += touch_map_to_coordinates(touch_map, region_config)
-        
+
     write_coordinates_to_file(coordinates)
 
 
@@ -36,17 +38,21 @@ def update_touch_map(touch_map: np.array, geometry: GeometryObject, region_confi
     else:
         lane = np.array(geometry.coordinates)
 
-
     in_range_mask = (
             (region_config['LONGITUDE_RANGE'][0] < lane[:, 0]) & (lane[:, 0] < region_config['LONGITUDE_RANGE'][1]) &
             (region_config['LATITUDE_RANGE'][0] < lane[:, 1]) & (lane[:, 1] < region_config['LATITUDE_RANGE'][1])
     )
     lane_in_range = lane[in_range_mask]
 
-    lon_indices = ((lane_in_range[:, 0] - region_config['LONGITUDE_RANGE'][0]) // region_config['LONGITUDE_STRIDE']).astype(int)
-    lat_indices = ((lane_in_range[:, 1] - region_config['LATITUDE_RANGE'][0]) // region_config['LATITUDE_STRIDE']).astype(int)
-    lon_diffs = np.abs((lon_indices * region_config['LONGITUDE_STRIDE'] + region_config['LONGITUDE_RANGE'][0]) - lane_in_range[:, 0])
-    lat_diffs = np.abs((lat_indices * region_config['LATITUDE_STRIDE'] + region_config['LATITUDE_RANGE'][0]) - lane_in_range[:, 1])
+    lon_indices = ((lane_in_range[:, 0] - region_config['LONGITUDE_RANGE'][0]) // region_config[
+        'LONGITUDE_STRIDE']).astype(int)
+    lat_indices = (
+                (lane_in_range[:, 1] - region_config['LATITUDE_RANGE'][0]) // region_config['LATITUDE_STRIDE']).astype(
+        int)
+    lon_diffs = np.abs(
+        (lon_indices * region_config['LONGITUDE_STRIDE'] + region_config['LONGITUDE_RANGE'][0]) - lane_in_range[:, 0])
+    lat_diffs = np.abs(
+        (lat_indices * region_config['LATITUDE_STRIDE'] + region_config['LATITUDE_RANGE'][0]) - lane_in_range[:, 1])
 
     valid_points_mask = (lon_diffs < 0.000575) & (lat_diffs < 0.0004775)
     valid_lon_indices = lon_indices[valid_points_mask]
@@ -64,8 +70,8 @@ def lane_transform_for_numpy(lane: np.array, transformer: Transformer) -> np.arr
 def touch_map_to_coordinates(touch_map: np.array, region_config: dict) -> List[Tuple[str, str]]:
     coordinates = []
     for x, y in zip(*np.where(touch_map > 0)):
-        coordinates.append((str(x* region_config['LONGITUDE_STRIDE'] + region_config['LONGITUDE_RANGE'][0]),
-                            str(y*region_config['LATITUDE_STRIDE'] + region_config['LATITUDE_RANGE'][0])))
+        coordinates.append((str(round(x * region_config['LONGITUDE_STRIDE'] + region_config['LONGITUDE_RANGE'][0], 4)),
+                            str(round(y * region_config['LATITUDE_STRIDE'] + region_config['LATITUDE_RANGE'][0], 4))))
     return coordinates
 
 

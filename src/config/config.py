@@ -1,6 +1,6 @@
 
 SHAPE_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/정밀도로지도/unzip'
-DATASET_PATH = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_good_matching_241125'
+DATASET_PATH = '/media/falcon/50fe2d19-4535-4db4-85fb-6970f063a4a11/Ongoing/2024_SATELLITE/datasets/satellite_dataset_250206'
 ORIGINAL_IMAGE_PATH = DATASET_PATH + '/origin_image'
 
 COORD_LIST_PATH = DATASET_PATH+'/coord_list.json'
