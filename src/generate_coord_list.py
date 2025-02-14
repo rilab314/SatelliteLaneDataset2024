@@ -1,6 +1,6 @@
 import numpy as np
 import json
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from pyproj import Transformer
 from tqdm import tqdm
 
@@ -27,8 +27,10 @@ def generate_coord_list():
             for geometry in geometries:
                 update_touch_map(touch_map, geometry, region_config)
         coordinates += touch_map_to_coordinates(touch_map, region_config)
-
-    write_coordinates_to_file(coordinates)
+    rounded_coordinates_for_filename = [[str(round(float(x), 4)), str(round(float(y), 4))] for x, y in coordinates]
+    coords_and_filename = {'coordinates': coordinates,
+                           'rounded_coordinates_for_filename': rounded_coordinates_for_filename}
+    write_coordinates_to_file(coords_and_filename)
 
 
 def update_touch_map(touch_map: np.array, geometry: GeometryObject, region_config: dict):
@@ -70,12 +72,12 @@ def lane_transform_for_numpy(lane: np.array, transformer: Transformer) -> np.arr
 def touch_map_to_coordinates(touch_map: np.array, region_config: dict) -> List[Tuple[str, str]]:
     coordinates = []
     for x, y in zip(*np.where(touch_map > 0)):
-        coordinates.append((str(round(x * region_config['LONGITUDE_STRIDE'] + region_config['LONGITUDE_RANGE'][0], 4)),
-                            str(round(y * region_config['LATITUDE_STRIDE'] + region_config['LATITUDE_RANGE'][0], 4))))
+        coordinates.append((str(x * region_config['LONGITUDE_STRIDE'] + region_config['LONGITUDE_RANGE'][0]),
+                            str(y * region_config['LATITUDE_STRIDE'] + region_config['LATITUDE_RANGE'][0])))
     return coordinates
 
 
-def write_coordinates_to_file(coordinates: List[Tuple[str, str]]):
+def write_coordinates_to_file(coordinates: Dict):
     save_path = cfg.COORD_LIST_PATH
     with open(save_path, 'w') as f:
         json.dump(coordinates, f)
