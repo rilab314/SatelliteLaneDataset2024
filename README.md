@@ -11,23 +11,23 @@ To train and evaluate the models in this repository, you need to download the re
 
 | Dataset Name       | Description                                   | Download Link                                                                 | File Format | Size    |
 |--------------------|-----------------------------------------------|-------------------------------------------------------------------------------|-------------|---------|
-| SEED-MAP          | Original dataset consisting of image-label pairs | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0IVO8x4OeIsFGSKQ?e=VP0KdX)                                | `.zip`      | 14.1 GB   |
-| COCO form          | SEED-MAP converted to COCO format | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0HS_xT2T0GtYQJ0w?e=miEozW)                                | `.zip`   | 13.6 GB   |
-| ADE20K form          | SEED-MAP converted to ADE20K format | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd0Gp6jZu6r0T_2_Pg?e=OPz8rq)                                | `.zip`      | 10.9 GB   |
+| SEED-MAP          | Original dataset consisting of image-label pairs | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd1ekNTZ5x4j0YWboA?e=CWaz84)                                | `.zip`      | 14.1 GB   |
+| COCO form          | SEED-MAP converted to COCO format | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd1g9J4bGQ-MDsKG7Q?e=Gwzl9k)                                | `.zip`   | 13.6 GB   |
+| ADE20K form          | SEED-MAP converted to ADE20K format | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd1fwqWGdYZtPB-VEA?e=K5viIk)                                | `.zip`      | 10.9 GB   |
 
 ### Directory Structure
 
 ```plaintext
 datasets
-├── satellite_dataset_241125
+├── satellite_dataset_250206
 │   ├── image
 │   └── label
-├── satellite_coco_241213
+├── satellite_coco_250206
 │   ├── annotations
 │   ├── test2017
 │   ├── train2017
 │   └── val2017
-└── satellite_ade20k_241213
+└── satellite_ade20k_250206
     ├── annotations
     │   ├── training
     │   └── validation
