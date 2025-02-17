@@ -2,7 +2,7 @@ import json
 import os.path
 import numpy as np
 from glob import glob
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from pyproj import Transformer
 from tqdm import tqdm
 
@@ -16,7 +16,9 @@ from src.utils.remove_duplicate_objects_by_points import remove_duplicate_object
 def generate_labels():
     os.makedirs(cfg.UNMATCHED_LABEL_PATH, exist_ok=True)
 
-    img_center_coords = read_coordinates(filename=cfg.COORD_LIST_PATH)
+    center_coords_and_filename = read_coordinates(filename=cfg.COORD_LIST_PATH)
+    img_center_coords = center_coords_and_filename['coordinates']
+    rounded_coords_for_filename = center_coords_and_filename['rounded_coordinates_for_filename']
     img_tlbr_coords = convert_to_tlbr(img_center_coords)
     reader = JsonFileReader(cfg.JSON_PATH)
     # reader = ShapeFileReader(cfg.SHAPE_PATH)  # 이걸로도 똑같이 할 수 있게
@@ -27,11 +29,11 @@ def generate_labels():
         for geometry_num, geometry in enumerate(geometries):
             image_mask = generate_image_mask(geometry, img_tlbr_coords, img_center_coords)
             update_global_touch_map(global_touch_map, image_mask, geometry_num)
-        write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords)
+        write_label(global_touch_map, geometries, img_tlbr_coords, rounded_coords_for_filename)
 
     remove_duplicate_objects(cfg.UNMATCHED_LABEL_PATH)
 
-def read_coordinates(filename: str) -> List[Tuple[str, str]]:
+def read_coordinates(filename: str) -> Dict:
     '''
     :param filename: 
     :return: [(x1, y1), (x2, y2), (x3, y3), ...]
@@ -82,11 +84,11 @@ def calculate_mask(coords, tlbr_coords):
 def update_global_touch_map(global_touch_map, image_mask, geometry_num):
     global_touch_map[image_mask, geometry_num] += 1
 
-def write_label(global_touch_map, geometries, img_tlbr_coords, img_center_coords):
-    for geo_touch_map, tlbr, center in zip(global_touch_map, img_tlbr_coords, img_center_coords):
+def write_label(global_touch_map, geometries, img_tlbr_coords, rounded_coords_for_filename):
+    for geo_touch_map, tlbr, coord_filename in zip(global_touch_map, img_tlbr_coords, rounded_coords_for_filename):
         if not np.all(geo_touch_map == 0):
             valid_geometries = np.array(geometries)[geo_touch_map==True]
-            filepath = to_label_filepath(center)
+            filepath = to_label_filepath(coord_filename)
             update_file(filepath, valid_geometries.tolist(), tlbr)
 
 
