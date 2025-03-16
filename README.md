@@ -2,6 +2,8 @@
 ## Description
 This repository contains a collection of scripts and tools designed to facilitate the generation, transformation, and utilization of the SEED-MAP dataset.
 
+![크기변환 Figure1](https://github.com/user-attachments/assets/97b5cade-ede9-4229-9c4b-ca62f1089bc7)
+
 
 
 ## Dataset Download
