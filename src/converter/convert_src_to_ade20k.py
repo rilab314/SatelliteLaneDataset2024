@@ -11,9 +11,10 @@ from shapely.geometry import LineString, MultiLineString, Polygon, MultiPolygon
 import src.config.config as cfg
 import src.config.config_converter as cfg_converter
 import src.converter.utils.generate_train_val_test_coords as gen_train_val_test_coords
+import src.config.color_map_config as color_map_config
 
 
-def generate_ade20k_dataset(src_label_dir: str, dst_dir: str, coords_json_path: str):
+def generate_ade20k_dataset(src_label_dir: str, dst_dir: str, coords_json_path: str, draw_color_label: bool):
     """
     Generate ADE20K dataset directly from source labels.
 
@@ -21,6 +22,7 @@ def generate_ade20k_dataset(src_label_dir: str, dst_dir: str, coords_json_path: 
         src_label_dir (str): Path to the source label JSON files.
         dst_dir (str): Destination directory to save ADE20K dataset.
         coords_json_path (str): Path to JSON file containing train/validation split.
+        draw_color_label (bool): Whether to draw color-label annotations.
     """
     with open(coords_json_path, 'r') as f:
         coords = json.load(f)
@@ -28,19 +30,26 @@ def generate_ade20k_dataset(src_label_dir: str, dst_dir: str, coords_json_path: 
     # Create necessary directories for ADE20K dataset
     os.makedirs(os.path.join(dst_dir, 'images', 'training'), exist_ok=True)
     os.makedirs(os.path.join(dst_dir, 'images', 'validation'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, 'images', 'test'), exist_ok=True)
     os.makedirs(os.path.join(dst_dir, 'annotations', 'training'), exist_ok=True)
     os.makedirs(os.path.join(dst_dir, 'annotations', 'validation'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, 'annotations', 'test'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, 'color_annotations', 'training'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, 'color_annotations', 'validation'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, 'color_annotations', 'test'), exist_ok=True)
 
     # Process training data
     for coord in tqdm(coords['train'], desc="Processing training dataset"):
-        _process_label_and_image(coord, src_label_dir, dst_dir, 'training')
+        _process_label_and_image(coord, src_label_dir, dst_dir, 'training', draw_color_label)
 
     # Process validation data
     for coord in tqdm(coords['validation'], desc="Processing validation dataset"):
-        _process_label_and_image(coord, src_label_dir, dst_dir, 'validation')
+        _process_label_and_image(coord, src_label_dir, dst_dir, 'validation', draw_color_label)
 
+    for coord in tqdm(coords['validation'], desc="Processing validation dataset"):
+        _process_label_and_image(coord, src_label_dir, dst_dir, 'test', draw_color_label)
 
-def _process_label_and_image(coord: str, src_label_dir: str, dst_dir: str, dataset_type: str):
+def _process_label_and_image(coord: str, src_label_dir: str, dst_dir: str, dataset_type: str, draw_color_label: bool):
     """
     Process a single label and corresponding image for the specified dataset type.
 
@@ -64,6 +73,15 @@ def _process_label_and_image(coord: str, src_label_dir: str, dst_dir: str, datas
     image_dst = os.path.join(dst_dir, 'images', dataset_type, f"{coord}.png")
     shutil.copy(image_path, image_dst)
 
+    if draw_color_label:
+        color_label_dst = os.path.join(dst_dir, 'color_annotations', dataset_type, f"{coord}.png")
+        color_map = [meta['color'] for meta in sorted(color_map_config.KindDictColors_lanedet, key=lambda x: x['id'])]
+        color_map.insert(0, (0, 0, 0))
+        colormap = np.array(color_map, dtype=np.uint8)
+
+        color_image = colormap[semantic_image]
+        cv2.imwrite(color_label_dst, cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR))
+
 
 def generate_semantic_image(label_path: str) -> np.ndarray:
     """
@@ -77,9 +95,11 @@ def generate_semantic_image(label_path: str) -> np.ndarray:
     """
     semantic_image = np.ones((768, 768), dtype=np.uint8) # label 1 is ignore
     category_priority = {
-        key: idx for idx, key in enumerate(cfg_converter.sorted_ADE20K_CATEGORIES.keys())
+        key:val['priority']  for key, val in cfg_converter.ADE20K_CATEGORIES.items()
     }
-    category_to_label_id = {value: idx for idx, value in enumerate(cfg_converter.ADE20K_CATEGORIES.values())}
+    category_to_label_id = {
+        val['category']:val['id']  for key, val in cfg_converter.ADE20K_CATEGORIES.items()
+    }
     with open(label_path, 'r') as f:
         data = json.load(f)
 
@@ -144,4 +164,4 @@ if __name__ == '__main__':
         cfg.LABEL_PATH, coords_save_path, cfg.DATASET_RATIO, [cfg.SEOUL_CONFIG, cfg.INCHEON_CONFIG]
     )
 
-    generate_ade20k_dataset(cfg.LABEL_PATH, ade20k_output_path, coords_save_path)
+    generate_ade20k_dataset(cfg.LABEL_PATH, ade20k_output_path, coords_save_path, draw_color_label=True)

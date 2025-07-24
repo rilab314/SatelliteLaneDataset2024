@@ -5,7 +5,7 @@ import numpy as np
 from glob import glob
 from tqdm import tqdm
 
-from src.figure.category_colormap import KindDictColors, KindDictColors_pastel
+from src.figure.category_colormap import KindDictColors_paper
 
 def draw_lane_on_image(image_path, label_path, output_path, scale=4, thickness=2, radius=2):
     image = cv2.imread(image_path)
@@ -28,7 +28,7 @@ def draw_lane_on_image(image_path, label_path, output_path, scale=4, thickness=2
             if obj['category_id'] == '531':
                 safety_zone_on = True
             #
-            color = KindDictColors[obj['category_id']]
+            color = KindDictColors_paper[obj['category_id']]
             # color = (color[2], color[1], color[0])
             scaled_points = [(int(x * scale), int(y * scale)) for x, y in obj['image_points']]
 
