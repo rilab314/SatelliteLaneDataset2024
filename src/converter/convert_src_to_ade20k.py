@@ -95,10 +95,10 @@ def generate_semantic_image(label_path: str) -> np.ndarray:
     """
     semantic_image = np.ones((768, 768), dtype=np.uint8) # label 1 is ignore
     category_priority = {
-        key:val['priority']  for key, val in cfg_converter.ADE20K_CATEGORIES.items()
+        key:val['priority']  for key, val in cfg_converter.ADE20K_LANE_CATEGORIES.items()
     }
     category_to_label_id = {
-        val['category']:val['id']  for key, val in cfg_converter.ADE20K_CATEGORIES.items()
+        val['category']:val['id']  for key, val in cfg_converter.ADE20K_LANE_CATEGORIES.items()
     }
     with open(label_path, 'r') as f:
         data = json.load(f)

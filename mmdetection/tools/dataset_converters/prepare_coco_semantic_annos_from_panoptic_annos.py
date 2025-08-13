@@ -12,7 +12,7 @@ import numpy as np
 from panopticapi.utils import rgb2id
 from PIL import Image
 
-COCO_CATEGORIES = [
+COCO_OD_CATEGORIES = [
     {
         'color': [220, 20, 60],
         'isthing': 1,
@@ -895,5 +895,5 @@ if __name__ == '__main__':
             os.path.join(dataset_dir, 'annotations/panoptic_{}'.format(s)),
             os.path.join(dataset_dir,
                          'annotations/panoptic_semseg_{}'.format(s)),
-            COCO_CATEGORIES,
+            COCO_OD_CATEGORIES,
         )

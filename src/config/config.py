@@ -10,7 +10,7 @@ IMAGE_PATH = DATASET_PATH+'/image'
 LABEL_PATH = DATASET_PATH+'/label'
 
 CUSTOM_ADE20K_PATH = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_ade20k_250724'
-CUSTOM_COCO_PATH = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2024_SATELLITE/datasets/satellite_coco_250724'
+CUSTOM_COCO_PATH = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2025_LaneDetector/new_coco_dataset'
 
 SURFACE_SHAPE_endswith_NAME = '/HDMap_UTM52N_타원체고/B3_SURFACEMARK.shp'
 LANE_SHAPE_endswith_NAME = '/HDMap_UTM52N_타원체고/B2_SURFACELINEMARK.shp'

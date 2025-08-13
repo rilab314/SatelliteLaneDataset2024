@@ -12,7 +12,7 @@ from fvcore.common.download import download
 from panopticapi.utils import rgb2id
 from PIL import Image
 
-from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
+from detectron2.data.datasets.builtin_meta import COCO_OD_CATEGORIES
 
 
 def _process_panoptic_to_semantic(input_panoptic, output_semantic, segments, id_map):
@@ -80,5 +80,5 @@ if __name__ == "__main__":
             os.path.join(dataset_dir, "annotations/panoptic_{}.json".format(s)),
             os.path.join(dataset_dir, "panoptic_{}".format(s)),
             os.path.join(dataset_dir, "panoptic_semseg_{}".format(s)),
-            COCO_CATEGORIES,
+            COCO_OD_CATEGORIES,
         )

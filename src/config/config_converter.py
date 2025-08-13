@@ -1,4 +1,4 @@
-ADE20K_CATEGORIES = {
+ADE20K_LANE_CATEGORIES = {
     '501': {'id':0, 'priority':10, 'category':'center_line',},
     '502': {'id':1, 'priority':6, 'category':'u_turn_zone_line',},
     '503': {'id':2, 'priority':7, 'category':'lane_line',},
@@ -13,7 +13,7 @@ ADE20K_CATEGORIES = {
 }
 
 
-COCO_CATEGORIES = {
+COCO_OD_CATEGORIES = {
     '5321': 'crosswalk',
     '533': 'raised_crosswalk',
     '534': 'bicycle_crosswalk',

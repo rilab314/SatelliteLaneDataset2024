@@ -1,9 +1,9 @@
 import os
 import json
 import cv2
-import numpy as np
 import dataclasses as dc
 
+import settings
 from glob import glob
 from typing import List
 from enum import Enum
