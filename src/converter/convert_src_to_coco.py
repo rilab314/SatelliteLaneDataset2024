@@ -106,7 +106,7 @@ class ConvertOriginToCOCO:
         height, width = image_shape
         mask = np.zeros((height, width), dtype=np.uint8)
         points = np.array(image_points, dtype=np.int32)
-        cv2.polylines(mask, [points], isClosed=False, color=255, thickness=2)
+        cv2.polylines(mask, [points], isClosed=False, color=255, thickness=3)
         # cv2.imshow('mask', mask)
         # cv2.waitKey(0)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
