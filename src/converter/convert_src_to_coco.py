@@ -43,7 +43,8 @@ class ConvertOriginToCOCO:
             image_list = [os.path.join(self.src_path, 'image', coord + '.png') for coord in file_list]
             label_list = [os.path.join(self.src_path, 'label', coord + '.json') for coord in file_list]
             for image_path in tqdm(image_list, desc='copy image files'):
-                shutil.copyfile(image_path, image_path.replace(self.src_path, self.save_path).replace('/image/', f'/{split}2017/'))
+                coco_split = split if split != 'validation' else 'val'
+                shutil.copyfile(image_path, image_path.replace(self.src_path, self.save_path).replace('/image/', f'/{coco_split}2017/'))
             self.convert_and_save_annotation(image_list, label_list, split)
 
     def convert_and_save_annotation(self, image_list, label_list, split):
@@ -82,9 +83,9 @@ class ConvertOriginToCOCO:
     def create_coco_annotation_from_linestring(self, source_data: dict, image_id: int,
                                                image_shape: tuple) -> Optional[dict]:
         if self.target == 'segmentation':
-            bbox, segmentation, area = self.geometric_annotation_from_mask(source_data['image_points'], image_shape)
+            segmentation, bbox, area = self.geometric_annotation_from_mask(source_data['image_points'], image_shape)
         else:
-            bbox, segmentation, area = self.geometric_annotation_from_points(source_data['image_points'], image_shape)
+            segmentation, bbox, area = self.geometric_annotation_from_points(source_data['image_points'], image_shape)
         if bbox is None:
             return None
         src_id = source_data['category_id']
@@ -111,7 +112,7 @@ class ConvertOriginToCOCO:
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         segmentation = []
         for contour in contours:
-            if contour.size >= 4:
+            if contour.size >= 6:
                 segmentation.append(contour.flatten().tolist())
 
         if not segmentation:
@@ -135,8 +136,8 @@ class ConvertOriginToCOCO:
         image_dict = {'license': 1,
                       'file_name': image_path.split('/')[-1],
                       'coco_url': '',
-                      'height': self.image_shape[1],
-                      'width': self.image_shape[0],
+                      'height': self.image_shape[0],
+                      'width': self.image_shape[1],
                       'date_captured': '',
                       'flickr_url': '',
                       'id': image_path.split('/')[-1].split('.png')[0]}
