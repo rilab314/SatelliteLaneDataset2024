@@ -4,7 +4,7 @@ import os
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.data.datasets import load_sem_seg
 
-COCO_CATEGORIES = [
+COCO_OD_CATEGORIES = [
     {"color": [220, 20, 60], "isthing": 1, "id": 1, "name": "person"},
     {"color": [119, 11, 32], "isthing": 1, "id": 2, "name": "bicycle"},
     {"color": [0, 0, 142], "isthing": 1, "id": 3, "name": "car"},
@@ -182,13 +182,13 @@ COCO_CATEGORIES = [
 def _get_coco_stuff_meta():
     # Id 0 is reserved for ignore_label, we change ignore_label for 0
     # to 255 in our pre-processing.
-    stuff_ids = [k["id"] for k in COCO_CATEGORIES]
+    stuff_ids = [k["id"] for k in COCO_OD_CATEGORIES]
     assert len(stuff_ids) == 171, len(stuff_ids)
 
     # For semantic segmentation, this mapping maps from contiguous stuff id
     # (in [0, 91], used in models) to ids in the dataset (used for processing results)
     stuff_dataset_id_to_contiguous_id = {k: i for i, k in enumerate(stuff_ids)}
-    stuff_classes = [k["name"] for k in COCO_CATEGORIES]
+    stuff_classes = [k["name"] for k in COCO_OD_CATEGORIES]
 
     ret = {
         "stuff_dataset_id_to_contiguous_id": stuff_dataset_id_to_contiguous_id,

@@ -1,4 +1,4 @@
-# Copyright (c) OpenMMLab. All rights reserved.
++................# Copyright (c) OpenMMLab. All rights reserved.
 from argparse import ArgumentParser
 
 import cv2

@@ -6,7 +6,7 @@ from glob import glob
 from typing import List, Dict, Tuple
 
 from src.config.config import KindDict
-from src.figure.category_colormap import KindDictColors
+from src.figure.category_colormap import KindDictColors_paper
 
 
 def upscale_image(image: np.ndarray, scale: int) -> np.ndarray:
@@ -133,7 +133,7 @@ def overlay_category_objects(image: np.ndarray, label_data: List[Dict], category
         points = np.array(obj['image_points'], dtype=np.int32) * scale
         category_points.append(points)
 
-        color = KindDictColors[obj['category_id']]
+        color = KindDictColors_paper[obj['category_id']]
         # color = (color[2], color[1], color[0])
         if obj['geometry_type'] == 'LINE_STRING':
             cv2.polylines(overlay, [points], isClosed=False, color=color, thickness=1 * scale)

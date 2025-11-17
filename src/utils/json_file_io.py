@@ -1,7 +1,6 @@
 import os
 import json
 import cv2
-import numpy as np
 import dataclasses as dc
 
 from glob import glob

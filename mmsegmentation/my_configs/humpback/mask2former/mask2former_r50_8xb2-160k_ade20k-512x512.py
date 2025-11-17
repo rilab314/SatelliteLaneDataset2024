@@ -1,7 +1,7 @@
 _base_ = ['../_base_/default_runtime.py', '../_base_/datasets/ade20k.py']
 
 custom_imports = dict(imports='mmdet.models', allow_failed_imports=False)
-load_from = '/home/humpback/shin_workspace/OPEN_SOURCE/mmsegmentation/pre_train/mask2former/mask2former_r50_8xb2-160k_ade20k-512x512_20221204_000055-2d1f55f1.pth'
+load_from = '/home/humpback/youn_ws/SatelliteLaneDataset2024/mmsegmentation/pre_trained/mask2former_r101_8xb2-90k_cityscapes-512x1024_20221130_031628-43e68666.pth'
 crop_size = (512, 512)
 data_preprocessor = dict(
     type='SegDataPreProcessor',

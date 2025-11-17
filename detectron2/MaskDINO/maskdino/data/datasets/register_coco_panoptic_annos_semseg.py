@@ -4,7 +4,7 @@ import os
 
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.data.datasets import load_sem_seg
-from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
+from detectron2.data.datasets.builtin_meta import COCO_OD_CATEGORIES
 from detectron2.utils.file_io import PathManager
 
 
@@ -36,10 +36,10 @@ def get_metadata():
     # visualization function in D2 handles thing and class classes differently
     # due to some heuristic used in Panoptic FPN. We keep the same naming to
     # enable reusing existing visualization functions.
-    thing_classes = [k["name"] for k in COCO_CATEGORIES if k["isthing"] == 1]
-    thing_colors = [k["color"] for k in COCO_CATEGORIES if k["isthing"] == 1]
-    stuff_classes = [k["name"] for k in COCO_CATEGORIES]
-    stuff_colors = [k["color"] for k in COCO_CATEGORIES]
+    thing_classes = [k["name"] for k in COCO_OD_CATEGORIES if k["isthing"] == 1]
+    thing_colors = [k["color"] for k in COCO_OD_CATEGORIES if k["isthing"] == 1]
+    stuff_classes = [k["name"] for k in COCO_OD_CATEGORIES]
+    stuff_colors = [k["color"] for k in COCO_OD_CATEGORIES]
 
     meta["thing_classes"] = thing_classes
     meta["thing_colors"] = thing_colors
@@ -57,7 +57,7 @@ def get_metadata():
     thing_dataset_id_to_contiguous_id = {}
     stuff_dataset_id_to_contiguous_id = {}
 
-    for i, cat in enumerate(COCO_CATEGORIES):
+    for i, cat in enumerate(COCO_OD_CATEGORIES):
         if cat["isthing"]:
             thing_dataset_id_to_contiguous_id[cat["id"]] = i
         # else:
