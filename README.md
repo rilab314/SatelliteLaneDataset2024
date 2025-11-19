@@ -1,6 +1,8 @@
 # SEED-MAP Data Framework
 ## Description
-This repository contains a collection of scripts and tools designed to facilitate the generation, transformation, and utilization of the SEED-MAP dataset.
+This repository accompanies the paper ‘A Comprehensive Satellite Imagery Dataset for Road Marking Detection’, published in the IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing.
+
+https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=11145260
 
 ![크기변환 Figure1](https://github.com/user-attachments/assets/97b5cade-ede9-4229-9c4b-ca62f1089bc7)
 
@@ -13,9 +15,9 @@ To train and evaluate the models in this repository, you need to download the re
 
 | Dataset Name       | Description                                   | Download Link                                                                 | File Format | Size    |
 |--------------------|-----------------------------------------------|-------------------------------------------------------------------------------|-------------|---------|
-| SEED-MAP          | Original dataset consisting of image-label pairs | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd1ekNTZ5x4j0YWboA?e=CWaz84)                                | `.zip`      | 14.1 GB   |
-| COCO form          | SEED-MAP converted to COCO format | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd1g9J4bGQ-MDsKG7Q?e=Gwzl9k)                                | `.zip`   | 13.6 GB   |
-| ADE20K form          | SEED-MAP converted to ADE20K format | [Download here](https://1drv.ms/u/s!ApIuZ8oQlFPzkd1fwqWGdYZtPB-VEA?e=K5viIk)                                | `.zip`      | 10.9 GB   |
+| SEED-MAP          | Original dataset consisting of image-label pairs | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQDA0050NiGWTLrReIcedOyEAV4bM9mexL1atMZo-davKBU?e=WJ4CUB)                                | `.zip`      | 14.1 GB   |
+| COCO form          | SEED-MAP converted to COCO format | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBsxQqUezuKQbcAmvoIyZfOAZZaYtGb9TS_ONKMFFB67FE?e=mTEX90)                                | `.zip`   | 13.6 GB   |
+| ADE20K form          | SEED-MAP converted to ADE20K format | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBuOlzkhioZRp4DF0otiom_AV4ogTF4YoZnqIXgeDD__Ps?e=qd17iG)                                | `.zip`      | 10.9 GB   |
 
 ### Directory Structure
 
@@ -39,7 +41,7 @@ datasets
 ```
 ## Usage Guide
 
-### 1. Prepare the Dataset
+### 1. Build Dataset
 Download the HD map dataset from the National Geographic Information Institute (NGII).  
 [Link to NGII HD Map Data](https://map.ngii.go.kr/ms/pblictn/preciseRoadMap.do)
 
@@ -59,54 +61,56 @@ NGII_HD_Map
 ```
 
 
-### 2. Convert HD Map Data to JSON
+#### 1.2. Convert HD Map Data to JSON
 Use the script shape_to_json_main.py to convert the required shapefiles into JSON format for easier data manipulation.
 
 ```bash
 python src/shape_to_json_main.py
 ```
 
-#### Purpose:
+##### Purpose:
 Convert HD map shapefile data into JSON format for improved accessibility and ease of transformation.
 
 
-### 3. Generate Coordinate Lists for Seoul and Incheon
+#### 1.3. Generate Coordinate Lists for Seoul and Incheon
 Run the script generate_coord_list.py to create a list of coordinates within the Seoul and Incheon regions.
 
 ```bash
 python src/generate_coord_list.py
 ```
-#### Purpose:
+##### Purpose:
 Identify coordinates in the target areas for further processing.
 
 
-### 4. Generate Lane and Road Marking Labels
+#### 1.4. Generate Lane and Road Marking Labels
 Use the JSON-based HD map data and coordinate list to generate lane and road marking labels for the specified coordinate regions by running generate_labels.py.
 
 ```bash
 python src/generate_labels.py
 ```
-#### Purpose:
+##### Purpose:
 Extract labels for lanes and road markings based on the specific coordinate areas.
 
 
-### 5. Align Labels with Images
+#### 1.5. Align Labels with Images
 Run build_dataset.py to align the generated labels with corresponding images, producing aligned labels for training.
 
 ```bash
 python src/build_dataset.py
 ```
-#### Purpose:
+##### Purpose:
 Create a training-ready dataset by aligning road marking labels with their respective images.
 
-### 6. Convert to COCO Format
+### 2. Converters
+
+#### 2.1. Convert to COCO Format
 Run the following command to convert the dataset to COCO format:
 
 ```bash
 python src/converter/convert_src_to_coco.py
 ```
 
-### 7. Convert to ADE20K Format
+#### 2.2. Convert to ADE20K Format
 Run the following command to convert the dataset to ADE20K format:
 
 ```bash
