@@ -162,3 +162,7 @@ cython_debug/
 .idea/
 
 *copy.py
+
+# Custom Data / Outputs
+mmsegmentation/demo/masks_color/
+mmsegmentation/demo/masks_raw/

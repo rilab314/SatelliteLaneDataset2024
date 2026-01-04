@@ -1,6 +1,6 @@
 # dataset settings
 dataset_type = 'ADE20KDataset'
-data_root = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Ongoing/2025_LaneDetector/ade20k/satellite_ade20k_250820'
+data_root = '/media/humpback/435806fd-079f-4ba1-ad80-109c8f6e2ec0/Archive/Dataset/unzips/SEED-MAP/ade20k'
 crop_size = (512, 512)
 train_pipeline = [
     dict(type='LoadImageFromFile'),

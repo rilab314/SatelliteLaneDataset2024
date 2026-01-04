@@ -7,6 +7,8 @@ from glob import glob
 from tqdm import tqdm
 from typing import Optional
 
+
+import settings
 import src.config.config as cfg
 import src.config.config_converter as cfg_converter
 from src.utils.json_file_io import save_json_with_custom_indent
