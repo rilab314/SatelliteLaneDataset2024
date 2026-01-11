@@ -1,6 +1,6 @@
 _base_ = ['./mask2former_swin-b-in1k-384x384-pre_8xb2-160k_ade20k-640x640.py']
 pretrained = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/swin/swin_large_patch4_window12_384_22k_20220412-6580f57d.pth'  # noqa
-load_from = '/home/humpback/youn_ws/SatelliteLaneDataset2024/mmsegmentation/pre_trained/mask2former_swin-l-in22k-384x384-pre_8xb2-160k_ade20k-640x640_20221203_235933-7120c214.pth'  # noqa
+load_from = '/media/dolphin/My Book/Ongoing/youn_ws/SatelliteLaneDataset2024/mmsegmentation/pre_trained/mask2former_swin-l-in22k-384x384-pre_8xb2-160k_ade20k-640x640_20221203_235933-7120c214.pth'  # noqa
 
 model = dict(
     backbone=dict(
