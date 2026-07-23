@@ -1,23 +1,36 @@
 # SEED-MAP Data Framework
+
+## 📢 New Release — SEED-MAP v1.1
+
+A consolidated deployment bundle, prepared for the 2026 LaneStitch paper, is now available.
+
+**2026_LaneStitch_deploy.zip** → [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBqRJCvBWj3Spdz6dt4qSBlAeWIO6KybeN_EDRcapP9LbY?e=Kz1iIs)
+
+What's new / what's included:
+
+- A single consolidated bundle (~35 GB unpacked) containing ADE20K + COCO + SEED vector source + segmentation predictions (InternImage / Mask2Former) + results — ready to reproduce without any extra build steps.
+- The SEED vector source is updated to v1.1: polylines that used to be split into multiple pieces for a single lane are now merged into one polyline per lane.
+- The original 2024 release (SEED-MAP 14.1 GB / COCO 13.6 GB / ADE20K 10.9 GB) remains available unchanged. This new bundle is a supplementary, up-to-date release, not a replacement.
+
 ## Description
+
 This repository accompanies the paper ‘A Comprehensive Satellite Imagery Dataset for Road Marking Detection’, published in the IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing.
 
 https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=11145260
 
 ![크기변환 Figure1](https://github.com/user-attachments/assets/97b5cade-ede9-4229-9c4b-ca62f1089bc7)
 
-
-
 ## Dataset Download
+
 To train and evaluate the models in this repository, you need to download the required datasets. Follow the instructions below to download and organize the datasets.
 
 ### Available Datasets
 
-| Dataset Name       | Description                                   | Download Link                                                                 | File Format | Size    |
-|--------------------|-----------------------------------------------|-------------------------------------------------------------------------------|-------------|---------|
-| SEED-MAP          | Original dataset consisting of image-label pairs | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQDA0050NiGWTLrReIcedOyEAV4bM9mexL1atMZo-davKBU?e=WJ4CUB)                                | `.zip`      | 14.1 GB   |
-| COCO form          | SEED-MAP converted to COCO format | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBsxQqUezuKQbcAmvoIyZfOAZZaYtGb9TS_ONKMFFB67FE?e=mTEX90)                                | `.zip`   | 13.6 GB   |
-| ADE20K form          | SEED-MAP converted to ADE20K format | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBuOlzkhioZRp4DF0otiom_AV4ogTF4YoZnqIXgeDD__Ps?e=qd17iG)                                | `.zip`      | 10.9 GB   |
+| Dataset Name | Description                                      | Download Link                                                                                                  | File Format | Size    |
+| ------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------- | ------- |
+| SEED-MAP     | Original dataset consisting of image-label pairs | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQDA0050NiGWTLrReIcedOyEAV4bM9mexL1atMZo-davKBU?e=WJ4CUB) | `.zip`      | 14.1 GB |
+| COCO form    | SEED-MAP converted to COCO format                | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBsxQqUezuKQbcAmvoIyZfOAZZaYtGb9TS_ONKMFFB67FE?e=mTEX90) | `.zip`      | 13.6 GB |
+| ADE20K form  | SEED-MAP converted to ADE20K format              | [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBuOlzkhioZRp4DF0otiom_AV4ogTF4YoZnqIXgeDD__Ps?e=qd17iG) | `.zip`      | 10.9 GB |
 
 ### Directory Structure
 
@@ -39,15 +52,19 @@ datasets
         ├── training
         └── validation
 ```
+
 ## Usage Guide
 
 ### 1. Build Dataset
+
 Download the HD map dataset from the National Geographic Information Institute (NGII).  
 [Link to NGII HD Map Data](https://map.ngii.go.kr/ms/pblictn/preciseRoadMap.do)
 
 #### 1.1. Dataset Structure
+
 Organize the downloaded dataset into a structured format.  
 For example:
+
 ```plaintext
 NGII_HD_Map
 ├── (B110)_Precision_Road_Map_Seoul_Northern_Ganseon_Road
@@ -60,8 +77,8 @@ NGII_HD_Map
     └── SEC001_Geumcheon_Tollgate_To_Yangjae_IC
 ```
 
-
 #### 1.2. Convert HD Map Data to JSON
+
 Use the script shape_to_json_main.py to convert the required shapefiles into JSON format for easier data manipulation.
 
 ```bash
@@ -69,41 +86,49 @@ python src/shape_to_json_main.py
 ```
 
 ##### Purpose:
+
 Convert HD map shapefile data into JSON format for improved accessibility and ease of transformation.
 
-
 #### 1.3. Generate Coordinate Lists for Seoul and Incheon
+
 Run the script generate_coord_list.py to create a list of coordinates within the Seoul and Incheon regions.
 
 ```bash
 python src/generate_coord_list.py
 ```
+
 ##### Purpose:
+
 Identify coordinates in the target areas for further processing.
 
-
 #### 1.4. Generate Lane and Road Marking Labels
+
 Use the JSON-based HD map data and coordinate list to generate lane and road marking labels for the specified coordinate regions by running generate_labels.py.
 
 ```bash
 python src/generate_labels.py
 ```
+
 ##### Purpose:
+
 Extract labels for lanes and road markings based on the specific coordinate areas.
 
-
 #### 1.5. Align Labels with Images
+
 Run build_dataset.py to align the generated labels with corresponding images, producing aligned labels for training.
 
 ```bash
 python src/build_dataset.py
 ```
+
 ##### Purpose:
+
 Create a training-ready dataset by aligning road marking labels with their respective images.
 
 ### 2. Converters
 
 #### 2.1. Convert to COCO Format
+
 Run the following command to convert the dataset to COCO format:
 
 ```bash
@@ -111,29 +136,31 @@ python src/converter/convert_src_to_coco.py
 ```
 
 #### 2.2. Convert to ADE20K Format
+
 Run the following command to convert the dataset to ADE20K format:
 
 ```bash
 python src/converter/convert_src_to_ade20k.py
 ```
+
 ---
+
 ## Sample images by category and type
+
 ![all categories](https://github.com/user-attachments/assets/e337833e-c0c2-4368-bed3-9e320e8eaabf)
 
-
-
-
-
 ## Inference Sample Images
+
 ### Object Detection
+
 ![127 07206000000001,37 616668](https://github.com/user-attachments/assets/b3bc484d-3b39-4150-a8cd-da358b67801f)
 ![127 06378000000001,37 4929](https://github.com/user-attachments/assets/5f752628-5ec8-4175-992d-fd865cccd411)
 ![127 04906000000001,37 489079999999994](https://github.com/user-attachments/assets/fe751f86-d152-43a7-8201-ad44f9aa67b0)
 ![126 721585,37 5165856](https://github.com/user-attachments/assets/ec32fefc-71f4-4d66-8126-bdf58372d1fd)
 
 ### Semantic Segmentation
+
 ![127 04998,37 50436](https://github.com/user-attachments/assets/5e719f25-41dc-4a9a-935c-ec3b7d6fcce3)
 ![127 05274,37 48144](https://github.com/user-attachments/assets/1f7586f9-f461-43a6-8624-c2dd4fbce518)
 ![127 05182,37 573119999999996](https://github.com/user-attachments/assets/360e5ec2-b132-4f74-b1ce-7174c9f5ba06)
 ![127 05458,37 534155999999996](https://github.com/user-attachments/assets/e51854bf-4b2d-4369-a60a-c07312d66e00)
-
