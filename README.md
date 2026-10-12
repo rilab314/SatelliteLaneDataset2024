@@ -1,16 +1,18 @@
 # SEED-MAP Data Framework
 
-## 📢 New Release — SEED-MAP v1.1
+## 📢 New Release — SEED-MAP v1.2
 
-A consolidated deployment bundle, prepared for the 2026 LaneStitch paper, is now available.
+A cleaned revision of the SEED vector source, prepared for the 2026 LaneStitch paper.
 
-**2026_LaneStitch_deploy.zip** → [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBqRJCvBWj3Spdz6dt4qSBlAeWIO6KybeN_EDRcapP9LbY?e=Kz1iIs)
+**SEED_MAP_v1.2.zip** (15.4 GB) → [Download here](https://1drv.ms/u/c/f3539410ca672e92/IQBMZAHIMd_6TLzjPtbBOhVAAYkR_aCEjl0rnjZxO5CMHDI?e=lX5Dnh)
 
-What's new / what's included:
+Changes from the original release (v1.0):
 
-- A single consolidated bundle (~35 GB unpacked) containing ADE20K + COCO + SEED vector source + segmentation predictions (InternImage / Mask2Former) + results — ready to reproduce without any extra build steps.
-- The SEED vector source is updated to v1.1: polylines that used to be split into multiple pieces for a single lane are now merged into one polyline per lane.
-- The original 2024 release (SEED-MAP 14.1 GB / COCO 13.6 GB / ADE20K 10.9 GB) remains available unchanged. This new bundle is a supplementary, up-to-date release, not a replacement.
+- **One polyline per lane.** A single lane that was stored as several fragmented or duplicated polylines is merged into one polyline.
+- **No overlap between splits.** 174 validation/test tiles that overlapped a tile of an earlier split are removed. 12,654 tiles remain (train 8,979 / validation 1,218 / test 2,457). The training split is unchanged.
+- **No off-tile labels.** 1,818 lane polylines that lay entirely outside their tile are removed.
+
+The label files keep the v1.0 JSON structure, but lane polyline pixel coordinates (`image_points`) are now floats. The archive also holds `dataset.json` (split lists), `tile_bounds.csv` (tile footprints) and `class_counts.csv`. The original 2024 release below remains available unchanged.
 
 ## Description
 
